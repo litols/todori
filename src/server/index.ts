@@ -3,16 +3,23 @@
 /**
  * Todori MCP Server Entry Point
  *
- * Implements JSON-RPC 2.0 protocol over stdio for task management.
+ * Implements MCP server using @modelcontextprotocol/sdk
  * Provides tools and prompts for Claude Code integration.
  */
 
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  GetPromptRequestSchema,
+  ListPromptsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
 import process from "node:process";
 import { detectProjectRoot, initializeProject } from "../integration/project-detect.js";
 import { TaskStore } from "../storage/task-store.js";
 import { TaskManager } from "../core/task-manager.js";
 import { QueryEngine } from "../core/query.js";
-import { StdioTransport } from "./transport.js";
 import { getToolSchemas, ToolHandlers, type ToolName } from "./tools.js";
 import {
   getPromptSchemas,
@@ -20,20 +27,6 @@ import {
   type PromptName,
   type PromptContext,
 } from "./prompts.js";
-import type {
-  MCPRequest,
-  MCPResponse,
-  MCPInitializeParams,
-  MCPInitializeResult,
-  MCPToolCallParams,
-  MCPPromptGetParams,
-} from "../types/mcp.js";
-import {
-  methodNotFound,
-  invalidParams,
-  internalError,
-  projectRootNotFound,
-} from "./error-handler.js";
 
 /**
  * Server version
@@ -41,363 +34,156 @@ import {
 const SERVER_VERSION = "1.0.0";
 
 /**
- * MCP protocol version
+ * Main server initialization and setup
  */
-const PROTOCOL_VERSION = "2024-11-05";
+async function main() {
+  try {
+    // Detect project root
+    const cwd = process.cwd();
+    const projectRoot = await detectProjectRoot(cwd);
 
-/**
- * Main server class
- */
-class TodoriMCPServer {
-  private transport: StdioTransport;
-  private taskManager?: TaskManager;
-  private queryEngine?: QueryEngine;
-  private projectRoot?: string;
-  private initialized = false;
-
-  constructor() {
-    this.transport = new StdioTransport();
-  }
-
-  /**
-   * Initialize the server with project root detection
-   */
-  async initialize(): Promise<void> {
-    try {
-      // Detect project root
-      const cwd = process.cwd();
-      const root = await detectProjectRoot(cwd);
-
-      if (!root) {
-        console.error(
-          "[Todori] Could not detect project root. Looking for .git or .todori directory.",
-        );
-        console.error(`[Todori] Searched from: ${cwd}`);
-        throw new Error("Project root not found");
-      }
-
-      this.projectRoot = root;
-      console.error(`[Todori] Project root detected: ${root}`);
-
-      // Initialize project if needed (creates .todori directory)
-      await initializeProject(root);
-
-      // Initialize storage and core components
-      const taskStore = new TaskStore(root);
-      this.taskManager = new TaskManager(taskStore);
-      this.queryEngine = new QueryEngine(this.taskManager);
-
-      console.error("[Todori] Server initialized successfully");
-    } catch (error) {
-      console.error(`[Todori] Initialization failed:`, error);
-      throw error;
+    if (!projectRoot) {
+      console.error(
+        "[Todori] Could not detect project root. Looking for .git or .todori directory.",
+      );
+      console.error(`[Todori] Searched from: ${cwd}`);
+      process.exit(1);
     }
-  }
 
-  /**
-   * Handle MCP initialize request
-   */
-  private handleInitialize(
-    id: string | number,
-    params: unknown,
-  ): MCPResponse {
-    // Validate params (optional for initialize)
-    const initParams = params as Partial<MCPInitializeParams>;
+    console.error(`[Todori] Project root detected: ${projectRoot}`);
 
-    // Mark as initialized
-    this.initialized = true;
+    // Initialize project if needed (creates .todori directory)
+    await initializeProject(projectRoot);
 
-    const result: MCPInitializeResult = {
-      protocolVersion: PROTOCOL_VERSION,
-      capabilities: {
-        tools: getToolSchemas(),
-        prompts: getPromptSchemas(),
-      },
-      serverInfo: {
+    // Initialize storage and core components
+    const taskStore = new TaskStore(projectRoot);
+    const taskManager = new TaskManager(taskStore);
+    const queryEngine = new QueryEngine(taskManager);
+
+    console.error("[Todori] Server initialized successfully");
+
+    // Create MCP server
+    const server = new Server(
+      {
         name: "todori",
         version: SERVER_VERSION,
       },
-    };
-
-    console.error(
-      `[Todori] Initialize handshake completed (client: ${initParams?.clientInfo?.name || "unknown"})`,
+      {
+        capabilities: {
+          tools: {},
+          prompts: {},
+        },
+      },
     );
 
-    return {
-      jsonrpc: "2.0",
-      id,
-      result,
-    };
-  }
-
-  /**
-   * Handle tools/list request
-   */
-  private handleToolsList(id: string | number): MCPResponse {
-    return {
-      jsonrpc: "2.0",
-      id,
-      result: {
+    // Register tools/list handler
+    server.setRequestHandler(ListToolsRequestSchema, async () => {
+      return {
         tools: getToolSchemas(),
-      },
-    };
-  }
-
-  /**
-   * Handle tools/call request
-   */
-  private async handleToolsCall(
-    id: string | number,
-    params: unknown,
-  ): Promise<MCPResponse> {
-    if (!this.taskManager || !this.queryEngine || !this.projectRoot) {
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: internalError("Server not initialized"),
       };
-    }
+    });
 
-    const toolParams = params as MCPToolCallParams;
+    // Register tools/call handler
+    server.setRequestHandler(CallToolRequestSchema, async (request) => {
+      const toolName = request.params.name as ToolName;
+      const handler = ToolHandlers[toolName];
 
-    if (!toolParams.name) {
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: invalidParams("Missing tool name"),
-      };
-    }
+      if (!handler) {
+        throw new Error(`Unknown tool: ${toolName}`);
+      }
 
-    const toolName = toolParams.name as ToolName;
-    const handler = ToolHandlers[toolName];
-
-    if (!handler) {
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: methodNotFound(toolName),
-      };
-    }
-
-    try {
       const context = {
-        taskManager: this.taskManager,
-        queryEngine: this.queryEngine,
-        projectRoot: this.projectRoot,
+        taskManager,
+        queryEngine,
+        projectRoot,
       };
 
-      const result = await handler(toolParams.arguments || {}, context);
+      const result = await handler(request.params.arguments || {}, context);
 
       if (!result.success) {
-        return {
-          jsonrpc: "2.0",
-          id,
-          error: result.error,
-        };
+        throw new Error(result.error?.message || "Tool execution failed");
       }
 
       return {
-        jsonrpc: "2.0",
-        id,
-        result: result.data,
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(result.data, null, 2),
+          },
+        ],
       };
-    } catch (error) {
-      console.error(`[Todori] Tool execution error (${toolName}):`, error);
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: internalError(
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-      };
-    }
-  }
+    });
 
-  /**
-   * Handle prompts/list request
-   */
-  private handlePromptsList(id: string | number): MCPResponse {
-    return {
-      jsonrpc: "2.0",
-      id,
-      result: {
+    // Register prompts/list handler
+    server.setRequestHandler(ListPromptsRequestSchema, async () => {
+      return {
         prompts: getPromptSchemas(),
-      },
-    };
-  }
-
-  /**
-   * Handle prompts/get request
-   */
-  private async handlePromptsGet(
-    id: string | number,
-    params: unknown,
-  ): Promise<MCPResponse> {
-    if (!this.taskManager || !this.queryEngine || !this.projectRoot) {
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: internalError("Server not initialized"),
       };
-    }
+    });
 
-    const promptParams = params as MCPPromptGetParams;
+    // Register prompts/get handler
+    server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+      const promptName = request.params.name as PromptName;
+      const handler = PromptHandlers[promptName];
 
-    if (!promptParams.name) {
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: invalidParams("Missing prompt name"),
-      };
-    }
+      if (!handler) {
+        throw new Error(`Unknown prompt: ${promptName}`);
+      }
 
-    const promptName = promptParams.name as PromptName;
-    const handler = PromptHandlers[promptName];
-
-    if (!handler) {
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: methodNotFound(promptName),
-      };
-    }
-
-    try {
       const context: PromptContext = {
-        taskManager: this.taskManager,
-        queryEngine: this.queryEngine,
-        projectRoot: this.projectRoot,
+        taskManager,
+        queryEngine,
+        projectRoot,
       };
 
       let content: string;
 
       // Handle prompts with different signatures
       if (promptName === "task_context") {
-        const taskId = promptParams.arguments?.taskId as string;
+        const taskId = request.params.arguments?.taskId as string;
         if (!taskId) {
-          return {
-            jsonrpc: "2.0",
-            id,
-            error: invalidParams("task_context prompt requires taskId argument"),
-          };
+          throw new Error("task_context prompt requires taskId argument");
         }
-        content = await (handler as (taskId: string, context: PromptContext) => Promise<string>)(taskId, context);
+        content = await (handler as (taskId: string, context: PromptContext) => Promise<string>)(
+          taskId,
+          context,
+        );
       } else {
         content = await (handler as (context: PromptContext) => Promise<string>)(context);
       }
 
       return {
-        jsonrpc: "2.0",
-        id,
-        result: {
-          description: `${promptName} prompt result`,
-          messages: [
-            {
-              role: "user",
-              content: {
-                type: "text",
-                text: content,
-              },
+        description: `${promptName} prompt result`,
+        messages: [
+          {
+            role: "user" as const,
+            content: {
+              type: "text" as const,
+              text: content,
             },
-          ],
-        },
+          },
+        ],
       };
-    } catch (error) {
-      console.error(`[Todori] Prompt execution error (${promptName}):`, error);
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: internalError(
-          `Prompt execution failed: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-      };
-    }
-  }
-
-  /**
-   * Handle incoming MCP request
-   */
-  private async handleRequest(request: MCPRequest): Promise<MCPResponse> {
-    const { method, id, params } = request;
-
-    console.error(`[Todori] Received request: ${method} (id: ${id})`);
-
-    try {
-      switch (method) {
-        case "initialize":
-          return this.handleInitialize(id, params);
-
-        case "tools/list":
-          return this.handleToolsList(id);
-
-        case "tools/call":
-          return await this.handleToolsCall(id, params);
-
-        case "prompts/list":
-          return this.handlePromptsList(id);
-
-        case "prompts/get":
-          return await this.handlePromptsGet(id, params);
-
-        default:
-          return {
-            jsonrpc: "2.0",
-            id,
-            error: methodNotFound(method),
-          };
-      }
-    } catch (error) {
-      console.error(`[Todori] Request handling error:`, error);
-      return {
-        jsonrpc: "2.0",
-        id,
-        error: internalError(
-          error instanceof Error ? error.message : String(error),
-        ),
-      };
-    }
-  }
-
-  /**
-   * Start the server
-   */
-  async start(): Promise<void> {
-    console.error("[Todori] Starting MCP server...");
-
-    // Register request handler
-    this.transport.onRequest(async (request) => {
-      return await this.handleRequest(request);
     });
 
     // Setup graceful shutdown
-    process.on("SIGINT", () => {
+    process.on("SIGINT", async () => {
       console.error("[Todori] Received SIGINT, shutting down gracefully...");
+      await server.close();
       process.exit(0);
     });
 
-    process.on("SIGTERM", () => {
+    process.on("SIGTERM", async () => {
       console.error("[Todori] Received SIGTERM, shutting down gracefully...");
+      await server.close();
       process.exit(0);
     });
 
-    // Start listening on stdio
-    console.error("[Todori] Listening for requests on stdin...");
-    await this.transport.listen();
-  }
-}
+    // Create stdio transport and connect
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
 
-/**
- * Main entry point
- */
-async function main() {
-  try {
-    const server = new TodoriMCPServer();
-
-    // Initialize server (detect project root, setup storage)
-    await server.initialize();
-
-    // Start listening for requests
-    await server.start();
+    console.error("[Todori] MCP server running on stdio");
   } catch (error) {
     console.error("[Todori] Fatal error:", error);
     process.exit(1);
