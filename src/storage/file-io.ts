@@ -48,6 +48,14 @@ async function acquireLock(filePath: string): Promise<() => Promise<void>> {
   // Ensure directory exists before locking
   await fs.mkdir(dirPath, { recursive: true });
 
+  // Ensure file exists before locking (proper-lockfile requires this)
+  try {
+    await fs.access(filePath);
+  } catch {
+    // File doesn't exist, create empty file
+    await fs.writeFile(filePath, "", { encoding: "utf-8" });
+  }
+
   let lastError: Error | undefined;
   let attempt = 0;
 

@@ -11,6 +11,11 @@ export enum TaskStatus {
 }
 
 /**
+ * Task status type (union of enum values)
+ */
+export type TaskStatusValue = `${TaskStatus}`;
+
+/**
  * Task priority levels
  */
 export enum Priority {
