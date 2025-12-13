@@ -1,9 +1,15 @@
 {
   "name": "todori",
+  "version": "0.1.0",
+  "description": "Claude Code-native task management MCP server with minimal context overhead",
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "bin": {
+    "todori": "./dist/server/index.js"
+  },
   "scripts": {
+    "build:dist": "tsc --project tsconfig.build.json",
     "build": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",

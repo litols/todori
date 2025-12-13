@@ -5,7 +5,7 @@
  * for JSON-RPC 2.0 protocol compliance.
  */
 
-import type { MCPError } from "../types/mcp.ts";
+import type { MCPError } from "../types/mcp.js";
 
 /**
  * JSON-RPC 2.0 Standard Error Codes

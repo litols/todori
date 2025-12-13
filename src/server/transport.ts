@@ -6,8 +6,8 @@
  */
 
 import { createInterface } from "node:readline";
-import type { MCPRequest, MCPResponse, MCPError } from "../types/mcp.ts";
-import { parseError, invalidRequest } from "./error-handler.ts";
+import type { MCPRequest, MCPResponse, MCPError } from "../types/mcp.js";
+import { parseError, invalidRequest } from "./error-handler.js";
 
 /**
  * Stdio transport for JSON-RPC 2.0 communication
