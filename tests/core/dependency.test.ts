@@ -2,7 +2,7 @@
  * Tests for DependencyGraph with cycle detection and topological sort
  */
 
-import { describe, test, expect, beforeEach } from "bun:test";
+import { describe, test, expect, beforeEach } from "vitest";
 import { DependencyGraph } from "../../src/core/dependency.js";
 import type { Task } from "../../src/types/task.js";
 

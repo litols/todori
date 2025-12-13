@@ -2,7 +2,7 @@
  * Tests for QueryEngine with filtering, sorting, and getNextTask
  */
 
-import { describe, test, expect, beforeEach } from "bun:test";
+import { describe, test, expect, beforeEach } from "vitest";
 import { QueryEngine } from "../../src/core/query.js";
 import { TaskManager } from "../../src/core/task-manager.js";
 import { TaskStore } from "../../src/storage/task-store.js";
@@ -10,6 +10,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
 import type { Task } from "../../src/types/task.js";
+import { TaskStatus, Priority } from "../../src/types/task.js";
 
 describe("QueryEngine", () => {
   let testDir: string;
@@ -29,40 +30,40 @@ describe("QueryEngine", () => {
       await taskManager.createTask({ title: "Pending Task" });
       await taskManager.createTask({
         title: "In Progress",
-        status: "in-progress" as any,
+        status: TaskStatus.InProgress,
       });
-      await taskManager.createTask({ title: "Done Task", status: "done" as any });
+      await taskManager.createTask({ title: "Done Task", status: TaskStatus.Done });
 
-      const pending = await queryEngine.queryTasks({ status: "pending" as any });
+      const pending = await queryEngine.queryTasks({ status: TaskStatus.Pending });
       expect(pending).toHaveLength(1);
-      expect(pending[0].title).toBe("Pending Task");
+      expect(pending[0]?.title).toBe("Pending Task");
     });
 
     test("filters by multiple statuses", async () => {
       await taskManager.createTask({ title: "Pending Task" });
       await taskManager.createTask({
         title: "In Progress",
-        status: "in-progress" as any,
+        status: TaskStatus.InProgress,
       });
-      await taskManager.createTask({ title: "Done Task", status: "done" as any });
+      await taskManager.createTask({ title: "Done Task", status: TaskStatus.Done });
 
       const results = await queryEngine.queryTasks({
-        status: ["pending", "in-progress"] as any,
+        status: [TaskStatus.Pending, TaskStatus.InProgress],
       });
       expect(results).toHaveLength(2);
     });
 
     test("filters by priority", async () => {
-      await taskManager.createTask({ title: "High", priority: "high" as any });
+      await taskManager.createTask({ title: "High", priority: Priority.High });
       await taskManager.createTask({
         title: "Medium",
-        priority: "medium" as any,
+        priority: Priority.Medium,
       });
-      await taskManager.createTask({ title: "Low", priority: "low" as any });
+      await taskManager.createTask({ title: "Low", priority: Priority.Low });
 
-      const high = await queryEngine.queryTasks({ priority: "high" as any });
+      const high = await queryEngine.queryTasks({ priority: Priority.High });
       expect(high).toHaveLength(1);
-      expect(high[0].title).toBe("High");
+      expect(high[0]?.title).toBe("High");
     });
 
     test("filters by created date range", async () => {
@@ -91,8 +92,8 @@ describe("QueryEngine", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].title).toBeDefined();
-      expect(results[0].id).toBeDefined();
+      expect(results[0]?.title).toBeDefined();
+      expect(results[0]?.id).toBeDefined();
       // Note: Due to how field selection works, other fields may still be present
       // but in a real implementation, they should be excluded
     });
@@ -115,15 +116,15 @@ describe("QueryEngine", () => {
     test("sorts by priority descending", async () => {
       const low = await taskManager.createTask({
         title: "Low",
-        priority: "low" as any,
+        priority: Priority.Low,
       });
       const high = await taskManager.createTask({
         title: "High",
-        priority: "high" as any,
+        priority: Priority.High,
       });
       const medium = await taskManager.createTask({
         title: "Medium",
-        priority: "medium" as any,
+        priority: Priority.Medium,
       });
 
       const tasks = await taskManager.getAllTasks();
@@ -132,9 +133,9 @@ describe("QueryEngine", () => {
         order: "desc",
       });
 
-      expect(sorted[0].title).toBe("High");
-      expect(sorted[1].title).toBe("Medium");
-      expect(sorted[2].title).toBe("Low");
+      expect(sorted[0]?.title).toBe("High");
+      expect(sorted[1]?.title).toBe("Medium");
+      expect(sorted[2]?.title).toBe("Low");
     });
 
     test("sorts by created date ascending", async () => {
@@ -150,17 +151,17 @@ describe("QueryEngine", () => {
         order: "asc",
       });
 
-      expect(sorted[0].title).toBe("First");
-      expect(sorted[1].title).toBe("Second");
-      expect(sorted[2].title).toBe("Third");
+      expect(sorted[0]?.title).toBe("First");
+      expect(sorted[1]?.title).toBe("Second");
+      expect(sorted[2]?.title).toBe("Third");
     });
 
     test("sorts by status", async () => {
-      await taskManager.createTask({ title: "Done", status: "done" as any });
+      await taskManager.createTask({ title: "Done", status: TaskStatus.Done });
       await taskManager.createTask({ title: "Pending" });
       await taskManager.createTask({
         title: "In Progress",
-        status: "in-progress" as any,
+        status: TaskStatus.InProgress,
       });
 
       const tasks = await taskManager.getAllTasks();
@@ -169,9 +170,9 @@ describe("QueryEngine", () => {
         order: "asc",
       });
 
-      expect(sorted[0].status).toBe("pending");
-      expect(sorted[1].status).toBe("in-progress");
-      expect(sorted[2].status).toBe("done");
+      expect(sorted[0]?.status).toBe(TaskStatus.Pending);
+      expect(sorted[1]?.status).toBe(TaskStatus.InProgress);
+      expect(sorted[2]?.status).toBe(TaskStatus.Done);
     });
   });
 
@@ -204,7 +205,7 @@ describe("QueryEngine", () => {
     });
 
     test("handles no available tasks gracefully", async () => {
-      await taskManager.createTask({ title: "Done", status: "done" as any });
+      await taskManager.createTask({ title: "Done", status: TaskStatus.Done });
 
       const result = await queryEngine.getNextTask();
 
@@ -217,11 +218,11 @@ describe("QueryEngine", () => {
     test("priority influences recommendation", async () => {
       const low = await taskManager.createTask({
         title: "Low Priority",
-        priority: "low" as any,
+        priority: Priority.Low,
       });
       const high = await taskManager.createTask({
         title: "High Priority",
-        priority: "high" as any,
+        priority: Priority.High,
       });
 
       const result = await queryEngine.getNextTask();
@@ -233,7 +234,7 @@ describe("QueryEngine", () => {
     test("returns task when dependencies are complete", async () => {
       const taskA = await taskManager.createTask({
         title: "Task A",
-        status: "done" as any,
+        status: TaskStatus.Done,
       });
       const taskB = await taskManager.createTask({
         title: "Task B",
@@ -258,7 +259,7 @@ describe("QueryEngine", () => {
       });
 
       // Update A to done, but B is still pending
-      await taskManager.updateTask(taskA.id, { status: "done" as any });
+      await taskManager.updateTask(taskA.id, { status: TaskStatus.Done });
 
       const result = await queryEngine.getNextTask();
 
@@ -270,11 +271,11 @@ describe("QueryEngine", () => {
       await taskManager.createTask({ title: "Pending Task" });
       await taskManager.createTask({
         title: "In Progress",
-        status: "in-progress" as any,
+        status: TaskStatus.InProgress,
       });
 
       const result = await queryEngine.getNextTask({
-        status: "in-progress" as any,
+        status: TaskStatus.InProgress,
       });
 
       expect(result.task?.title).toBe("In Progress");
@@ -285,7 +286,7 @@ describe("QueryEngine", () => {
       // A → C → D
       const taskA = await taskManager.createTask({
         title: "Task A",
-        status: "done" as any,
+        status: TaskStatus.Done,
       });
       const taskB = await taskManager.createTask({
         title: "Task B",
@@ -303,8 +304,9 @@ describe("QueryEngine", () => {
       const result = await queryEngine.getNextTask();
 
       // Should recommend B or C (both unblocked), not D
+      expect(result.task).toBeDefined();
       expect(result.task?.id).not.toBe(taskD.id);
-      expect([taskB.id, taskC.id]).toContain(result.task?.id);
+      expect([taskB.id, taskC.id]).toContain(result.task?.id || "");
     });
   });
 });

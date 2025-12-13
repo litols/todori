@@ -341,14 +341,14 @@ describe("Integration - Session Restoration", () => {
 
       expect(context.recentTasks).toHaveLength(3);
       // Most recent first
-      expect(context.recentTasks[0].id).toBe(task3.id);
-      expect(context.recentTasks[1].id).toBe(task2.id);
-      expect(context.recentTasks[2].id).toBe(task1.id);
+      expect(context.recentTasks[0]?.id).toBe(task3.id);
+      expect(context.recentTasks[1]?.id).toBe(task2.id);
+      expect(context.recentTasks[2]?.id).toBe(task1.id);
     });
 
     test("limits recentTasks to 5 items", async () => {
       // Create 10 tasks
-      const tasks = [];
+      const tasks: any[] = [];
       for (let i = 0; i < 10; i++) {
         const task = await taskManager.createTask({ title: `Task ${i}` });
         tasks.push(task);
@@ -359,10 +359,14 @@ describe("Integration - Session Restoration", () => {
       const context = await restoreSession(testDir);
 
       expect(context.recentTasks).toHaveLength(5);
-      // Should be the 5 most recent
-      expect(context.recentTasks[0].id).toBe(tasks[9].id);
-      expect(context.recentTasks[1].id).toBe(tasks[8].id);
-      expect(context.recentTasks[4].id).toBe(tasks[5].id);
+      // Should be the 5 most recent (TypeScript strict mode workaround)
+      const recentTasks = context.recentTasks;
+      const id0 = (recentTasks[0] as any)?.id || "";
+      const id1 = (recentTasks[1] as any)?.id || "";
+      const id4 = (recentTasks[4] as any)?.id || "";
+      expect(id0).toBe((tasks[9] as any)?.id || "");
+      expect(id1).toBe((tasks[8] as any)?.id || "");
+      expect(id4).toBe((tasks[5] as any)?.id || "");
     });
 
     test("recentTasks empty when no tasks exist", async () => {
@@ -381,10 +385,10 @@ describe("Integration - Session Restoration", () => {
       const context = await restoreSession(testDir);
 
       expect(context.recentTasks).toHaveLength(1);
-      expect(context.recentTasks[0].id).toBe(task.id);
-      expect(context.recentTasks[0].title).toBe("Test Task");
-      expect(context.recentTasks[0].description).toBe("Test Description");
-      expect(context.recentTasks[0].status).toBe(TaskStatus.InProgress);
+      expect(context.recentTasks[0]?.id).toBe(task.id);
+      expect(context.recentTasks[0]?.title).toBe("Test Task");
+      expect(context.recentTasks[0]?.description).toBe("Test Description");
+      expect(context.recentTasks[0]?.status).toBe(TaskStatus.InProgress);
     });
   });
 
