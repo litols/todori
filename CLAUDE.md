@@ -70,5 +70,12 @@ mise install  # Installs Bun 1.3.4
 ```
 
 ## Rule
+- You need to use tools through bun or bunx if bun or bunx is prefer to the task.
 - Please make git commits at appropriate intervals. DON'T touch .gitignore files.
-- you need to run taskmaster tasks with sub-agent. sub-agent is not shared context window, so you need to give a properly context with tasks.
+- you need to separate tasks by sub-agent. please create sub agent properly when you try complex task.
+  - you need to use TodoWrite tool to visualize task progress.
+  - recommended to split sub-agent task-runner, quality-checker, ..., and so on.
+  - sub-agent also need to log the thinking process, but put it briefly.
+  - don't run sub-agent long time. you need to separate tasks properly when you delegate the tasks to sub-agent.
+  - sub-agent is not shared context window, so you need to give a proper context with tasks.
+  - you need to verify output from sub-agent, also you need to mark tasks as completed.
