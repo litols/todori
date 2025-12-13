@@ -35,3 +35,59 @@ export interface MCPToolSchema {
   description: string;
   inputSchema: Record<string, unknown>;
 }
+
+/**
+ * MCP Initialize Request Parameters
+ */
+export interface MCPInitializeParams {
+  protocolVersion: string;
+  capabilities: Record<string, unknown>;
+  clientInfo: {
+    name: string;
+    version: string;
+  };
+}
+
+/**
+ * MCP Initialize Result
+ */
+export interface MCPInitializeResult {
+  protocolVersion: string;
+  capabilities: {
+    tools?: MCPToolSchema[];
+    prompts?: MCPPromptSchema[];
+  };
+  serverInfo: {
+    name: string;
+    version: string;
+  };
+}
+
+/**
+ * MCP Prompt Schema Definition
+ */
+export interface MCPPromptSchema {
+  name: string;
+  description: string;
+  arguments?: Array<{
+    name: string;
+    description: string;
+    required?: boolean;
+  }>;
+}
+
+/**
+ * MCP Tool Call Parameters
+ */
+export interface MCPToolCallParams {
+  name: string;
+  arguments?: Record<string, unknown>;
+}
+
+/**
+ * MCP Prompt Get Parameters
+ */
+export interface MCPPromptGetParams {
+  name: string;
+  arguments?: Record<string, unknown>;
+}
