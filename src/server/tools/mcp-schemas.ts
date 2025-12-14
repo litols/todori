@@ -50,7 +50,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           limit: { type: "number", description: "Pagination limit (default: 20, max: 20)" },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -66,7 +67,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           id: { type: "string", description: "Task UUID" },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -98,7 +100,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -126,7 +129,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -174,7 +178,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -236,7 +241,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -262,7 +268,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           description: { type: "string", description: "Optional subtask description in English" },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -287,7 +294,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           description: { type: "string", description: "Subtask description in English" },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -306,7 +314,8 @@ export function getToolSchemas(): MCPToolSchema[] {
           },
           includeMetadata: {
             type: "boolean",
-            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+            description:
+              "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },

@@ -95,12 +95,9 @@ function normalizeFilter<T>(filter: T | T[] | undefined): T[] | undefined {
 /**
  * Project task fields for minimal response size
  */
-function projectTaskFields(
-  task: Task | TaskResponse,
-  fields?: string[],
-): Record<string, unknown> {
+function projectTaskFields(task: Task | TaskResponse, fields?: string[]): Record<string, unknown> {
   if (!fields || fields.length === 0) {
-    return task;
+    return task as Record<string, unknown>;
   }
 
   const projected: Record<string, unknown> = {};
@@ -364,7 +361,7 @@ export async function handleGetNextTask(
     });
 
     // If there's a recommended task, apply metadata exclusion
-    if (recommendation && recommendation.task) {
+    if (recommendation?.task) {
       return {
         success: true,
         data: {

@@ -77,6 +77,6 @@ export function toTaskResponse(task: Task, includeMetadata = false): TaskRespons
     return task;
   }
 
-  const { metadata, ...rest } = task;
+  const { metadata: _metadata, ...rest } = task;
   return rest;
 }
