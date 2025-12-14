@@ -57,3 +57,26 @@ export interface Task {
   metadata: TaskMetadata;
   customFields?: Record<string, unknown>;
 }
+
+/**
+ * Task response type with optional metadata for MCP responses
+ * Used to minimize context window usage by excluding metadata when not needed
+ */
+export type TaskResponse = Omit<Task, "metadata"> & {
+  metadata?: TaskMetadata;
+};
+
+/**
+ * Convert a Task to TaskResponse, optionally including metadata
+ * @param task - The task to convert
+ * @param includeMetadata - Whether to include metadata in the response (default: false)
+ * @returns TaskResponse with or without metadata
+ */
+export function toTaskResponse(task: Task, includeMetadata = false): TaskResponse {
+  if (includeMetadata) {
+    return task;
+  }
+
+  const { metadata: _metadata, ...rest } = task;
+  return rest;
+}
