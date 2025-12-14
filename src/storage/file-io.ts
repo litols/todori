@@ -6,6 +6,13 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as lockfile from "proper-lockfile";
+import { parse as yamlParse, stringify as yamlStringify } from "yaml";
+import {
+  formatSessionInfo,
+  getCurrentSession,
+  type SessionInfo,
+  type SessionLock,
+} from "../types/session.js";
 
 /**
  * Custom error types for file I/O operations
@@ -37,13 +44,79 @@ const LOCK_RETRY_CONFIG = {
 };
 
 /**
+ * Session lock file name within .todori directory
+ */
+const SESSION_LOCK_FILE = "session-lock.yaml";
+
+/**
+ * Get the session lock file path for a given tasks file
+ */
+function getSessionLockPath(tasksFilePath: string): string {
+  const dirPath = path.dirname(tasksFilePath);
+  return path.join(dirPath, SESSION_LOCK_FILE);
+}
+
+/**
+ * Write session lock information to file
+ */
+async function writeSessionLock(tasksFilePath: string, session: SessionInfo): Promise<void> {
+  const lockPath = getSessionLockPath(tasksFilePath);
+  const now = new Date().toISOString();
+
+  const lockData: SessionLock = {
+    session,
+    acquiredAt: now,
+    lastActiveAt: now,
+    lockFile: tasksFilePath,
+  };
+
+  const content = yamlStringify(lockData);
+  await fs.writeFile(lockPath, content, { encoding: "utf-8" });
+}
+
+/**
+ * Read current session lock information
+ * Returns null if no lock file exists
+ */
+async function readSessionLock(tasksFilePath: string): Promise<SessionLock | null> {
+  const lockPath = getSessionLockPath(tasksFilePath);
+
+  try {
+    const content = await fs.readFile(lockPath, { encoding: "utf-8" });
+    return yamlParse(content) as SessionLock;
+  } catch (error) {
+    const nodeError = error as NodeJS.ErrnoException;
+    if (nodeError.code === "ENOENT") {
+      return null;
+    }
+    // For other errors, return null (best effort)
+    return null;
+  }
+}
+
+/**
+ * Remove session lock file
+ */
+async function removeSessionLock(tasksFilePath: string): Promise<void> {
+  const lockPath = getSessionLockPath(tasksFilePath);
+
+  try {
+    await fs.unlink(lockPath);
+  } catch {
+    // Ignore errors - file may not exist
+  }
+}
+
+/**
  * Acquire a file lock with retry logic
+ * Records session information on successful lock acquisition
  *
  * @param filePath - Path to lock
  * @returns Release function
  */
 async function acquireLock(filePath: string): Promise<() => Promise<void>> {
   const dirPath = path.dirname(filePath);
+  const currentSession = getCurrentSession();
 
   // Ensure directory exists before locking
   await fs.mkdir(dirPath, { recursive: true });
@@ -67,6 +140,10 @@ async function acquireLock(filePath: string): Promise<() => Promise<void>> {
         },
         stale: LOCK_TIMEOUT,
       });
+
+      // Successfully acquired lock - record session info
+      await writeSessionLock(filePath, currentSession);
+
       return release;
     } catch (error) {
       lastError = error as Error;
@@ -77,26 +154,47 @@ async function acquireLock(filePath: string): Promise<() => Promise<void>> {
         const delay = LOCK_RETRY_CONFIG.minTimeout * LOCK_RETRY_CONFIG.factor ** (attempt - 1);
         const cappedDelay = Math.min(delay, LOCK_RETRY_CONFIG.maxTimeout);
 
+        // Log retry with session info if available
+        const lockHolder = await readSessionLock(filePath);
+        if (lockHolder) {
+          console.warn(
+            `Lock held by another session, retrying in ${cappedDelay}ms...\n` +
+              formatSessionInfo(lockHolder.session) +
+              `\n  Locked since: ${lockHolder.acquiredAt}`,
+          );
+        }
+
         await new Promise((resolve) => setTimeout(resolve, cappedDelay));
       }
     }
   }
 
-  throw new FileIOError(
-    `Failed to acquire lock after ${LOCK_RETRY_CONFIG.retries} retries: ${lastError?.message}`,
-    "ELOCK",
-    filePath,
-  );
+  // Final failure - include lock holder info in error message
+  const lockHolder = await readSessionLock(filePath);
+  let errorMessage = `Failed to acquire lock after ${LOCK_RETRY_CONFIG.retries} retries`;
+  if (lockHolder) {
+    errorMessage +=
+      `\nFile is locked by another session:\n` +
+      formatSessionInfo(lockHolder.session) +
+      `\n  Locked since: ${lockHolder.acquiredAt}`;
+  } else {
+    errorMessage += `: ${lastError?.message}`;
+  }
+
+  throw new FileIOError(errorMessage, "ELOCK", filePath);
 }
 
 /**
  * Release a file lock safely
+ * Also removes the session lock file
  *
  * @param release - Release function from acquireLock
  * @param filePath - File path (for error messages)
  */
 async function releaseLock(release: () => Promise<void>, filePath: string): Promise<void> {
   try {
+    // Remove session lock file first
+    await removeSessionLock(filePath);
     await release();
   } catch (error) {
     // Log but don't throw - releasing lock is best effort

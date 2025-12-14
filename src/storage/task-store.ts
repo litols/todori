@@ -4,6 +4,7 @@
 
 import * as path from "node:path";
 import * as YAML from "yaml";
+import { getCurrentSession } from "../types/session.js";
 import type { Task } from "../types/task.js";
 import { atomicWrite, safeRead } from "./file-io.js";
 import {
@@ -82,10 +83,14 @@ export class TaskStore {
 
   /**
    * Save tasks to disk
+   * Records the current session info in metadata
    *
    * @param tasks - Array of tasks to save
    */
   async saveTasks(tasks: Task[]): Promise<void> {
+    // Get current session for tracking
+    const session = getCurrentSession();
+
     // Create task file structure
     const taskFile: TaskFile = {
       ...createEmptyTaskFile(this.projectRoot),
@@ -93,6 +98,7 @@ export class TaskStore {
       metadata: {
         created: new Date().toISOString(),
         updated: new Date().toISOString(),
+        lastModifiedBy: session,
       },
     };
 

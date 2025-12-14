@@ -55,6 +55,15 @@ const TaskSchema = z.object({
 });
 
 /**
+ * Zod schema for session info (lastModifiedBy)
+ */
+const SessionInfoSchema = z.object({
+  pid: z.number(),
+  startTime: z.string().datetime(),
+  hostname: z.string().optional(),
+});
+
+/**
  * Zod schema for YAML file format
  */
 const TaskFileSchema = z.object({
@@ -63,6 +72,7 @@ const TaskFileSchema = z.object({
   metadata: z.object({
     created: z.string().datetime(),
     updated: z.string().datetime(),
+    lastModifiedBy: SessionInfoSchema.optional(),
   }),
   tasks: z.array(TaskSchema),
 });
