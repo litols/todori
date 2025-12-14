@@ -16,6 +16,8 @@ docs/.vitepress/cache
 
 # Environment variables
 .env
+.devcontainer
+.devcontainer/.env
 
 # Editor directories and files
 .idea
