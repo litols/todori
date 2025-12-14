@@ -18,6 +18,30 @@ Todori is a Model Context Protocol (MCP) server designed specifically for Claude
 
 ## 🚀 Quick Start
 
+### Option 1: Claude Code Plugin (Recommended)
+
+Install Todori as a Claude Code plugin:
+
+```bash
+# Add the marketplace
+/plugin marketplace add litols/todori
+
+# Install the plugin
+/plugin install todori@todori-marketplace
+```
+
+After installation, restart Claude Code and use the slash commands:
+
+```
+/tasks              # Show all tasks
+/next-task          # Get recommended next task
+/add-task           # Add a new task
+/task-done          # Mark task as completed
+/todori-init        # Initialize Todori in project
+```
+
+### Option 2: MCP Registry
+
 Install Todori via the Claude MCP registry:
 
 ```bash

@@ -1,0 +1,23 @@
+{
+  "name": "todori",
+  "version": "0.1.0",
+  "description": "Claude Code-native task management with minimal context overhead. Provides persistent, structured task tracking via MCP server.",
+  "author": {
+    "name": "litols",
+    "url": "https://github.com/litols"
+  },
+  "homepage": "https://github.com/litols/todori",
+  "repository": "https://github.com/litols/todori",
+  "license": "MIT",
+  "keywords": ["task-management", "todo", "mcp", "productivity"],
+  "commands": "./commands/",
+  "mcpServers": {
+    "todori": {
+      "command": "bun",
+      "args": ["run", "${CLAUDE_PLUGIN_ROOT}/dist/server/index.js"],
+      "env": {
+        "TODORI_PROJECT_ROOT": "${cwd}"
+      }
+    }
+  }
+}
