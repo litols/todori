@@ -201,8 +201,9 @@ describe("Integration - Project Detection", () => {
     });
 
     test("throws error with meaningful message on failure", async () => {
-      // Try to create in a read-only parent (use a path that won't work)
-      const invalidPath = "/root/nonexistent/project-xyz123";
+      // Use /dev/null which is a device file, not a directory
+      // Trying to create a directory under it will fail
+      const invalidPath = "/dev/null/project-xyz123";
 
       try {
         await initializeProject(invalidPath);
