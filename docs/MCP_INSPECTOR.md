@@ -352,7 +352,7 @@ Manually open: `http://localhost:6274`
 - [MCP Inspector Documentation](https://modelcontextprotocol.io/docs/tools/inspector)
 - [MCP Inspector GitHub](https://github.com/modelcontextprotocol/inspector)
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/docs/specification)
-- [Todori Architecture](../ARCHITECTURE_MCP.md)
+- [Todori Architecture](https://github.com/litols/todori/blob/main/ARCHITECTURE_MCP.md)
 
 ## Security Note
 
