@@ -33,10 +33,10 @@ Install Todori as a Claude Code plugin:
 After installation, restart Claude Code and use the slash commands:
 
 ```
-/tasks              # Show all tasks
-/next-task          # Get recommended next task
-/add-task           # Add a new task
-/task-done          # Mark task as completed
+/todori-tasks       # Show all tasks
+/todori-next        # Get recommended next task
+/todori-add         # Add a new task
+/todori-done        # Mark task as completed
 /todori-init        # Initialize Todori in project
 ```
 
