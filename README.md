@@ -3,7 +3,6 @@
 **Claude Code-native task management MCP server with minimal context overhead**
 
 [![CI](https://github.com/litols/todori/workflows/CI/badge.svg)](https://github.com/litols/todori/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Todori is a Model Context Protocol (MCP) server designed specifically for Claude Code that provides persistent, structured task management without consuming your precious context window.
 
@@ -191,10 +190,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Commit your changes (`git commit -m 'Add amazing feature'`)
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 

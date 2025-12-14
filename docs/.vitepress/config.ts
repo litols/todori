@@ -81,10 +81,5 @@ export default defineConfig({
 
   themeConfig: {
     socialLinks: [{ icon: "github", link: "https://github.com/litols/todori" }],
-
-    footer: {
-      message: "Released under the MIT License.",
-      copyright: "Copyright © 2025 Todori Contributors",
-    },
   },
 });
