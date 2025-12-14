@@ -32,6 +32,7 @@ import {
   type ToolName,
 } from "../../src/server/tools.js";
 import { TaskStore } from "../../src/storage/task-store.js";
+import type { Task } from "../../src/types/task.js";
 
 /**
  * Test fixture setup
@@ -155,7 +156,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const task = result.data as any;
+      const task = result.data as unknown as Task;
       expect(task.id).toBeDefined();
       expect(task.title).toBe("Test Task");
       expect(task.description).toBe("Test description");
@@ -188,7 +189,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const task = result.data as any;
+      const task = result.data as unknown as Task;
       expect(task.status).toBe("pending");
       expect(task.priority).toBe("medium");
       expect(task.dependencies).toEqual([]);
@@ -204,7 +205,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
-      const created = createResult.data as any;
+      const created = createResult.data as unknown as Task;
 
       // Retrieve it
       const getResult = await ToolHandlers.get_task({ id: created.id }, toolContext);
@@ -212,7 +213,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(getResult.success).toBe(true);
       if (!getResult.success) return;
 
-      const task = getResult.data as any;
+      const task = getResult.data as unknown as Task;
       expect(task.id).toBe(created.id);
       expect(task.title).toBe("Retrieve Me");
     });
@@ -236,7 +237,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
-      const created = createResult.data as any;
+      const created = createResult.data as unknown as Task;
 
       // Update it
       const updateResult = await ToolHandlers.update_task(
@@ -252,7 +253,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(updateResult.success).toBe(true);
       if (!updateResult.success) return;
 
-      const updated = updateResult.data as any;
+      const updated = updateResult.data as unknown as Task;
       expect(updated.id).toBe(created.id);
       expect(updated.title).toBe("Updated Title");
       expect(updated.status).toBe("in-progress");
@@ -283,7 +284,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
-      const created = createResult.data as any;
+      const created = createResult.data as unknown as Task;
 
       // Delete it
       const deleteResult = await ToolHandlers.delete_task({ id: created.id }, toolContext);
@@ -291,7 +292,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(deleteResult.success).toBe(true);
       if (!deleteResult.success) return;
 
-      const deleteData = deleteResult.data as any;
+      const deleteData = deleteResult.data as unknown as { success: boolean; deletedId: string };
       expect(deleteData.success).toBe(true);
       expect(deleteData.deletedId).toBe(created.id);
 
@@ -323,7 +324,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const tasks = result.data as any[];
+      const tasks = result.data as unknown as Task[];
       expect(Array.isArray(tasks)).toBe(true);
       expect(tasks.length).toBe(2);
     });
@@ -340,7 +341,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const tasks = result.data as any[];
+      const tasks = result.data as unknown as Task[];
       expect(tasks.length).toBe(1);
       expect(tasks[0]?.status).toBe("pending");
     });
@@ -357,7 +358,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const tasks = result.data as any[];
+      const tasks = result.data as unknown as Task[];
       expect(tasks.length).toBe(3);
     });
   });
@@ -376,7 +377,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const recommendation = result.data as any;
+      const recommendation = result.data as unknown as { task: Task | null; reason: string };
       expect(recommendation.task.title).toBe("High Priority");
     });
 
@@ -386,7 +387,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const recommendation = result.data as any;
+      const recommendation = result.data as unknown as { task: Task | null; reason: string };
       expect(recommendation.task).toBeNull();
     });
   });
@@ -409,7 +410,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const tasks = result.data as any[];
+      const tasks = result.data as unknown as Task[];
       expect(tasks.length).toBe(2);
       expect(tasks[0]?.priority).toBe("high");
     });
@@ -430,10 +431,10 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const tasks = result.data as any[];
+      const tasks = result.data as unknown as Array<{ id: string; title: string }>;
       expect(tasks[0]?.id).toBeDefined();
       expect(tasks[0]?.title).toBeDefined();
-      expect(tasks[0]?.description).toBeUndefined();
+      expect(tasks[0]).not.toHaveProperty("description");
     });
   });
 
@@ -449,7 +450,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const stats = result.data as any;
+      const stats = result.data as unknown as { total: number; byStatus: Record<string, number> };
       expect(stats.total).toBe(2);
       expect(stats.byStatus.pending).toBe(1);
       expect(stats.byStatus.done).toBe(1);
@@ -461,7 +462,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      const stats = result.data as any;
+      const stats = result.data as unknown as { total: number; byStatus: Record<string, number> };
       expect(stats.byStatus).toHaveProperty("pending");
       expect(stats.byStatus).toHaveProperty("in-progress");
       expect(stats.byStatus).toHaveProperty("blocked");
@@ -479,7 +480,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
-      const parent = createResult.data as any;
+      const parent = createResult.data as unknown as Task;
 
       // Add subtask
       const addResult = await ToolHandlers.add_subtask(
@@ -494,7 +495,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(addResult.success).toBe(true);
       if (!addResult.success) return;
 
-      const updated = addResult.data as any;
+      const updated = addResult.data as unknown as Task;
       expect(updated.subtasks.length).toBe(1);
       expect(updated.subtasks[0]?.title).toBe("Subtask 1");
     });
@@ -506,7 +507,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
-      const parent = createResult.data as any;
+      const parent = createResult.data as unknown as Task;
 
       await ToolHandlers.add_subtask({ parentId: parent.id, title: "Sub" }, toolContext);
 
@@ -522,7 +523,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(updateResult.success).toBe(true);
       if (!updateResult.success) return;
 
-      const updated = updateResult.data as any;
+      const updated = updateResult.data as unknown as Task;
       expect(updated.subtasks[0]?.status).toBe("done");
     });
 
@@ -533,7 +534,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
-      const parent = createResult.data as any;
+      const parent = createResult.data as unknown as Task;
 
       await ToolHandlers.add_subtask({ parentId: parent.id, title: "Delete Me" }, toolContext);
 
@@ -546,7 +547,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(deleteResult.success).toBe(true);
       if (!deleteResult.success) return;
 
-      const updated = deleteResult.data as any;
+      const updated = deleteResult.data as unknown as Task;
       expect(updated.subtasks.length).toBe(0);
     });
   });
@@ -609,7 +610,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
-      const task = createResult.data as any;
+      const task = createResult.data as unknown as Task;
 
       // Get task context
       const content = await taskContextPrompt(task.id, promptContext);
@@ -653,7 +654,7 @@ describe("MCP Server - Integration Tests", () => {
       const result = await ToolHandlers.create_task(
         {
           title: "Test Task",
-          status: "invalid-status" as any,
+          status: "invalid-status" as unknown as "pending",
         },
         toolContext,
       );
@@ -665,7 +666,7 @@ describe("MCP Server - Integration Tests", () => {
       const result = await ToolHandlers.create_task(
         {
           title: "Test Task",
-          priority: "invalid-priority" as any,
+          priority: "invalid-priority" as unknown as "high",
         },
         toolContext,
       );
@@ -694,7 +695,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(resultA.success).toBe(true);
       if (!resultA.success) return;
 
-      const taskA = resultA.data as any;
+      const taskA = resultA.data as unknown as Task;
 
       // Create task B depending on A
       const resultB = await ToolHandlers.create_task(
@@ -704,7 +705,7 @@ describe("MCP Server - Integration Tests", () => {
       expect(resultB.success).toBe(true);
       if (!resultB.success) return;
 
-      const taskB = resultB.data as any;
+      const taskB = resultB.data as unknown as Task;
 
       // Try to update A to depend on B (would create cycle)
       const resultUpdate = await ToolHandlers.update_task(

@@ -11,6 +11,7 @@ import { TaskManager } from "../../src/core/task-manager.js";
 import { detectProjectRoot, initializeProject } from "../../src/integration/project-detect.js";
 import { restoreSession } from "../../src/integration/session-restore.js";
 import { TaskStore } from "../../src/storage/task-store.js";
+import type { Task } from "../../src/types/task.js";
 import { TaskStatus } from "../../src/types/task.js";
 
 describe("Integration - Project Detection", () => {
@@ -348,7 +349,7 @@ describe("Integration - Session Restoration", () => {
 
     test("limits recentTasks to 5 items", async () => {
       // Create 10 tasks
-      const tasks: any[] = [];
+      const tasks: Task[] = [];
       for (let i = 0; i < 10; i++) {
         const task = await taskManager.createTask({ title: `Task ${i}` });
         tasks.push(task);
@@ -359,14 +360,14 @@ describe("Integration - Session Restoration", () => {
       const context = await restoreSession(testDir);
 
       expect(context.recentTasks).toHaveLength(5);
-      // Should be the 5 most recent (TypeScript strict mode workaround)
+      // Should be the 5 most recent
       const recentTasks = context.recentTasks;
-      const id0 = (recentTasks[0] as any)?.id || "";
-      const id1 = (recentTasks[1] as any)?.id || "";
-      const id4 = (recentTasks[4] as any)?.id || "";
-      expect(id0).toBe((tasks[9] as any)?.id || "");
-      expect(id1).toBe((tasks[8] as any)?.id || "");
-      expect(id4).toBe((tasks[5] as any)?.id || "");
+      const id0 = (recentTasks[0] as unknown as Task)?.id || "";
+      const id1 = (recentTasks[1] as unknown as Task)?.id || "";
+      const id4 = (recentTasks[4] as unknown as Task)?.id || "";
+      expect(id0).toBe((tasks[9] as unknown as Task)?.id || "");
+      expect(id1).toBe((tasks[8] as unknown as Task)?.id || "");
+      expect(id4).toBe((tasks[5] as unknown as Task)?.id || "");
     });
 
     test("recentTasks empty when no tasks exist", async () => {
@@ -441,13 +442,13 @@ describe("Integration - Session Restoration", () => {
       const _lowPriority = await taskManager.createTask({
         title: "Low Priority",
         status: TaskStatus.Pending,
-        priority: "low" as any,
+        priority: "low" as unknown as "low",
       });
 
       const highPriority = await taskManager.createTask({
         title: "High Priority",
         status: TaskStatus.Pending,
-        priority: "high" as any,
+        priority: "high" as unknown as "high",
       });
 
       const context = await restoreSession(testDir);
@@ -558,21 +559,21 @@ describe("Integration - Session Restoration", () => {
       const createButton = await taskManager.createTask({
         title: "Create Button Component",
         status: TaskStatus.InProgress,
-        priority: "high" as any,
+        priority: "high" as unknown as "high",
         dependencies: [setupUI.id],
       });
 
       const createForm = await taskManager.createTask({
         title: "Create Form Component",
         status: TaskStatus.Pending,
-        priority: "high" as any,
+        priority: "high" as unknown as "high",
         dependencies: [setupUI.id],
       });
 
       const _writeTests = await taskManager.createTask({
         title: "Write Tests",
         status: TaskStatus.Pending,
-        priority: "medium" as any,
+        priority: "medium" as unknown as "medium",
         dependencies: [createButton.id, createForm.id],
       });
 
