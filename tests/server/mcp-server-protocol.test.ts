@@ -8,12 +8,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import {
-  getPromptSchemas,
-  type PromptName,
-  PromptHandlers,
-} from "../../src/server/prompts.js";
-import { getToolSchemas, type ToolName, ToolHandlers } from "../../src/server/tools.js";
+import { getPromptSchemas, PromptHandlers, type PromptName } from "../../src/server/prompts.js";
+import { getToolSchemas, ToolHandlers, type ToolName } from "../../src/server/tools.js";
 import { cleanupTestContext, setupTestContext, type TestContext } from "./helpers.js";
 
 describe("MCP Server - Protocol Compliance", () => {

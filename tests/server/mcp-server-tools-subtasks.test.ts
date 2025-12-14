@@ -56,20 +56,14 @@ describe("MCP Server - Subtask Tools", () => {
 
     test("update_subtask modifies subtask status", async () => {
       // Create parent with subtask
-      const createResult = await ToolHandlers.create_task(
-        { title: "Parent" },
-        context.toolContext,
-      );
+      const createResult = await ToolHandlers.create_task({ title: "Parent" }, context.toolContext);
 
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
       const parent = createResult.data as unknown as Task;
 
-      await ToolHandlers.add_subtask(
-        { parentId: parent.id, title: "Sub" },
-        context.toolContext,
-      );
+      await ToolHandlers.add_subtask({ parentId: parent.id, title: "Sub" }, context.toolContext);
 
       // Update subtask
       const updateResult = await ToolHandlers.update_subtask(
@@ -89,10 +83,7 @@ describe("MCP Server - Subtask Tools", () => {
 
     test("delete_subtask removes subtask", async () => {
       // Create parent with subtask
-      const createResult = await ToolHandlers.create_task(
-        { title: "Parent" },
-        context.toolContext,
-      );
+      const createResult = await ToolHandlers.create_task({ title: "Parent" }, context.toolContext);
 
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;

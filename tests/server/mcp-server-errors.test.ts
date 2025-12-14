@@ -10,7 +10,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { type ToolName, ToolHandlers } from "../../src/server/tools.js";
+import { ToolHandlers, type ToolName } from "../../src/server/tools.js";
 import type { Task } from "../../src/types/task.js";
 import { cleanupTestContext, setupTestContext, type TestContext } from "./helpers.js";
 

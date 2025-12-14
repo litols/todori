@@ -149,10 +149,7 @@ describe("MCP Server - CRUD Tools", () => {
     });
 
     test("returns error for non-existent task", async () => {
-      const result = await ToolHandlers.get_task(
-        { id: "non-existent-id" },
-        context.toolContext,
-      );
+      const result = await ToolHandlers.get_task({ id: "non-existent-id" }, context.toolContext);
 
       expect(result.success).toBe(false);
       if (result.success) return;
@@ -226,10 +223,7 @@ describe("MCP Server - CRUD Tools", () => {
       const created = createResult.data as unknown as Task;
 
       // Delete it
-      const deleteResult = await ToolHandlers.delete_task(
-        { id: created.id },
-        context.toolContext,
-      );
+      const deleteResult = await ToolHandlers.delete_task({ id: created.id }, context.toolContext);
 
       expect(deleteResult.success).toBe(true);
       if (!deleteResult.success) return;
@@ -245,10 +239,7 @@ describe("MCP Server - CRUD Tools", () => {
     });
 
     test("returns error for non-existent task", async () => {
-      const result = await ToolHandlers.delete_task(
-        { id: "does-not-exist" },
-        context.toolContext,
-      );
+      const result = await ToolHandlers.delete_task({ id: "does-not-exist" }, context.toolContext);
 
       expect(result.success).toBe(false);
       if (result.success) return;
@@ -301,10 +292,7 @@ describe("MCP Server - CRUD Tools", () => {
       }
 
       // Get with limit
-      const result = await ToolHandlers.get_tasks(
-        { limit: 3, offset: 0 },
-        context.toolContext,
-      );
+      const result = await ToolHandlers.get_tasks({ limit: 3, offset: 0 }, context.toolContext);
 
       expect(result.success).toBe(true);
       if (!result.success) return;

@@ -19,19 +19,17 @@ export {
   handleDeleteTask,
   handleGetNextTask,
   handleGetTask,
-  handleGetTasks,
   handleGetTaskStats,
+  handleGetTasks,
   handleQueryTasks,
   handleUpdateSubtask,
   handleUpdateTask,
 } from "./tools/handlers.js";
-
+// Re-export MCP schema generator
+export { getToolSchemas } from "./tools/mcp-schemas.js";
 // Re-export registry
 export type { ToolName } from "./tools/registry.js";
 export { ToolHandlers } from "./tools/registry.js";
-
-// Re-export MCP schema generator
-export { getToolSchemas } from "./tools/mcp-schemas.js";
 
 // Re-export validation schemas (useful for testing)
 export {
@@ -41,8 +39,8 @@ export {
   DeleteTaskSchema,
   GetNextTaskSchema,
   GetTaskSchema,
-  GetTasksSchema,
   GetTaskStatsSchema,
+  GetTasksSchema,
   PrioritySchema,
   QueryTasksSchema,
   TaskStatusSchema,

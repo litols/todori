@@ -62,15 +62,9 @@ describe("MCP Server - Query Tools", () => {
   describe("Tools - query_tasks", () => {
     test("queries with filters and sorting", async () => {
       // Create tasks
-      await ToolHandlers.create_task(
-        { title: "A Task", priority: "high" },
-        context.toolContext,
-      );
+      await ToolHandlers.create_task({ title: "A Task", priority: "high" }, context.toolContext);
 
-      await ToolHandlers.create_task(
-        { title: "B Task", priority: "low" },
-        context.toolContext,
-      );
+      await ToolHandlers.create_task({ title: "B Task", priority: "low" }, context.toolContext);
 
       // Query with sort
       const result = await ToolHandlers.query_tasks(
@@ -114,10 +108,7 @@ describe("MCP Server - Query Tools", () => {
   describe("Tools - get_task_stats", () => {
     test("calculates task statistics", async () => {
       // Create tasks with different statuses
-      await ToolHandlers.create_task(
-        { title: "Pending", status: "pending" },
-        context.toolContext,
-      );
+      await ToolHandlers.create_task({ title: "Pending", status: "pending" }, context.toolContext);
 
       await ToolHandlers.create_task({ title: "Done", status: "done" }, context.toolContext);
 
