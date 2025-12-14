@@ -201,17 +201,11 @@ describe("Integration - Project Detection", () => {
     });
 
     test("throws error with meaningful message on failure", async () => {
-      // Use /dev/null which is a device file, not a directory
-      // Trying to create a directory under it will fail
-      const invalidPath = "/dev/null/project-xyz123";
+      // Use a truly invalid path that will fail on mkdir
+      // Using a null byte in path which is invalid on all systems
+      const invalidPath = "/tmp/invalid\0path";
 
-      try {
-        await initializeProject(invalidPath);
-        expect(true).toBe(false); // Should not reach here
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-        expect((error as Error).message).toContain("Failed to initialize project");
-      }
+      await expect(initializeProject(invalidPath)).rejects.toThrow("Failed to initialize project");
     });
   });
 });
