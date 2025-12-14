@@ -13,6 +13,7 @@ import {
   type Priority,
   type Subtask,
   type Task,
+  type TaskResponse,
   type TaskStatus,
   toTaskResponse,
 } from "../../types/task.js";
@@ -94,7 +95,10 @@ function normalizeFilter<T>(filter: T | T[] | undefined): T[] | undefined {
 /**
  * Project task fields for minimal response size
  */
-function projectTaskFields(task: Task, fields?: string[]): Partial<Task> {
+function projectTaskFields(
+  task: Task | TaskResponse,
+  fields?: string[],
+): Record<string, unknown> {
   if (!fields || fields.length === 0) {
     return task;
   }
@@ -105,7 +109,7 @@ function projectTaskFields(task: Task, fields?: string[]): Partial<Task> {
       projected[field] = task[field as keyof Task];
     }
   }
-  return projected as Partial<Task>;
+  return projected;
 }
 
 // ============================================================================
