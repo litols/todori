@@ -35,6 +35,7 @@ export const GetTasksSchema = z.object({
   updatedBefore: z.string().optional(),
   offset: z.number().int().min(0).optional(),
   limit: z.number().int().min(1).max(50).optional(),
+  includeMetadata: z.boolean().optional(),
 });
 
 /**
@@ -42,6 +43,7 @@ export const GetTasksSchema = z.object({
  */
 export const GetTaskSchema = z.object({
   id: z.string().min(1),
+  includeMetadata: z.boolean().optional(),
 });
 
 /**
@@ -53,6 +55,7 @@ export const CreateTaskSchema = z.object({
   priority: PrioritySchema.optional(),
   dependencies: z.array(z.string()).optional(),
   status: TaskStatusSchema.optional(),
+  includeMetadata: z.boolean().optional(),
 });
 
 /**
@@ -65,6 +68,7 @@ export const UpdateTaskSchema = z.object({
   status: TaskStatusSchema.optional(),
   priority: PrioritySchema.optional(),
   dependencies: z.array(z.string()).optional(),
+  includeMetadata: z.boolean().optional(),
 });
 
 /**
@@ -80,6 +84,7 @@ export const DeleteTaskSchema = z.object({
 export const GetNextTaskSchema = z.object({
   status: z.union([TaskStatusSchema, z.array(TaskStatusSchema)]).optional(),
   priority: z.union([PrioritySchema, z.array(PrioritySchema)]).optional(),
+  includeMetadata: z.boolean().optional(),
 });
 
 /**
@@ -94,6 +99,7 @@ export const QueryTasksSchema = z.object({
     })
     .optional(),
   fields: z.array(z.string()).optional(),
+  includeMetadata: z.boolean().optional(),
 });
 
 /**
@@ -108,6 +114,7 @@ export const AddSubtaskSchema = z.object({
   parentId: z.string().min(1),
   title: z.string().min(1),
   description: z.string().optional(),
+  includeMetadata: z.boolean().optional(),
 });
 
 /**
@@ -118,6 +125,7 @@ export const UpdateSubtaskSchema = z.object({
   status: TaskStatusSchema.optional(),
   title: z.string().min(1).optional(),
   description: z.string().optional(),
+  includeMetadata: z.boolean().optional(),
 });
 
 /**
@@ -125,4 +133,5 @@ export const UpdateSubtaskSchema = z.object({
  */
 export const DeleteSubtaskSchema = z.object({
   subtaskId: z.string().regex(/^.+\.\d+$/),
+  includeMetadata: z.boolean().optional(),
 });

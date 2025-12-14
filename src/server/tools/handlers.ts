@@ -9,7 +9,13 @@ import { z } from "zod";
 import { DependencyGraph } from "../../core/dependency.js";
 import type { QueryEngine } from "../../core/query.js";
 import type { TaskManager } from "../../core/task-manager.js";
-import type { Priority, Subtask, Task, TaskStatus } from "../../types/task.js";
+import {
+  type Priority,
+  type Subtask,
+  type Task,
+  type TaskStatus,
+  toTaskResponse,
+} from "../../types/task.js";
 import {
   dependencyCycle,
   internalError,
@@ -124,6 +130,7 @@ export async function handleGetTasks(params: unknown, context: ToolContext): Pro
     updatedBefore,
     offset,
     limit,
+    includeMetadata,
   } = validation.data;
 
   try {
@@ -138,7 +145,8 @@ export async function handleGetTasks(params: unknown, context: ToolContext): Pro
       limit: Math.min(limit || 20, 20), // Max 20 tasks to stay under 2KB
     });
 
-    return { success: true, data: tasks };
+    const responseTasks = tasks.map((task) => toTaskResponse(task, includeMetadata));
+    return { success: true, data: responseTasks };
   } catch (error) {
     return {
       success: false,
@@ -156,7 +164,7 @@ export async function handleGetTask(params: unknown, context: ToolContext): Prom
     return validation;
   }
 
-  const { id } = validation.data;
+  const { id, includeMetadata } = validation.data;
 
   try {
     const task = await context.taskManager.getTask(id);
@@ -164,7 +172,7 @@ export async function handleGetTask(params: unknown, context: ToolContext): Prom
       return { success: false, error: taskNotFound(id) };
     }
 
-    return { success: true, data: task };
+    return { success: true, data: toTaskResponse(task, includeMetadata) };
   } catch (error) {
     return {
       success: false,
@@ -182,7 +190,7 @@ export async function handleCreateTask(params: unknown, context: ToolContext): P
     return validation;
   }
 
-  const { title, description, priority, dependencies, status } = validation.data;
+  const { title, description, priority, dependencies, status, includeMetadata } = validation.data;
 
   try {
     // Validate dependencies exist
@@ -220,7 +228,7 @@ export async function handleCreateTask(params: unknown, context: ToolContext): P
       status: status as TaskStatus | undefined,
     });
 
-    return { success: true, data: task };
+    return { success: true, data: toTaskResponse(task, includeMetadata) };
   } catch (error) {
     return {
       success: false,
@@ -238,7 +246,8 @@ export async function handleUpdateTask(params: unknown, context: ToolContext): P
     return validation;
   }
 
-  const { id, title, description, status, priority, dependencies } = validation.data;
+  const { id, title, description, status, priority, dependencies, includeMetadata } =
+    validation.data;
 
   try {
     // Check if task exists
@@ -289,7 +298,7 @@ export async function handleUpdateTask(params: unknown, context: ToolContext): P
       return { success: false, error: taskNotFound(id) };
     }
 
-    return { success: true, data: updatedTask };
+    return { success: true, data: toTaskResponse(updatedTask, includeMetadata) };
   } catch (error) {
     return {
       success: false,
@@ -342,13 +351,24 @@ export async function handleGetNextTask(
     return validation;
   }
 
-  const { status, priority } = validation.data;
+  const { status, priority, includeMetadata } = validation.data;
 
   try {
     const recommendation = await context.queryEngine.getNextTask({
       status: normalizeFilter(status) as TaskStatus[] | undefined,
       priority: normalizeFilter(priority) as Priority[] | undefined,
     });
+
+    // If there's a recommended task, apply metadata exclusion
+    if (recommendation && recommendation.task) {
+      return {
+        success: true,
+        data: {
+          ...recommendation,
+          task: toTaskResponse(recommendation.task, includeMetadata),
+        },
+      };
+    }
 
     return { success: true, data: recommendation };
   } catch (error) {
@@ -368,7 +388,7 @@ export async function handleQueryTasks(params: unknown, context: ToolContext): P
     return validation;
   }
 
-  const { filters, sort, fields } = validation.data;
+  const { filters, sort, fields, includeMetadata } = validation.data;
 
   try {
     // Apply filters
@@ -395,13 +415,16 @@ export async function handleQueryTasks(params: unknown, context: ToolContext): P
       });
     }
 
+    // Convert to TaskResponse first (metadata exclusion)
+    const responseTasks = tasks.map((task) => toTaskResponse(task, includeMetadata));
+
     // Apply field projection
     if (fields && fields.length > 0) {
-      const projected = tasks.map((task) => projectTaskFields(task, fields));
+      const projected = responseTasks.map((task) => projectTaskFields(task, fields));
       return { success: true, data: projected };
     }
 
-    return { success: true, data: tasks };
+    return { success: true, data: responseTasks };
   } catch (error) {
     return {
       success: false,
@@ -513,7 +536,7 @@ export async function handleAddSubtask(params: unknown, context: ToolContext): P
     return validation;
   }
 
-  const { parentId, title, description } = validation.data;
+  const { parentId, title, description, includeMetadata } = validation.data;
 
   try {
     const updatedTask = await context.taskManager.addSubtask(parentId, title, description);
@@ -522,7 +545,7 @@ export async function handleAddSubtask(params: unknown, context: ToolContext): P
       return { success: false, error: taskNotFound(parentId) };
     }
 
-    return { success: true, data: updatedTask };
+    return { success: true, data: toTaskResponse(updatedTask, includeMetadata) };
   } catch (error) {
     return {
       success: false,
@@ -543,7 +566,7 @@ export async function handleUpdateSubtask(
     return validation;
   }
 
-  const { subtaskId, status, title, description } = validation.data;
+  const { subtaskId, status, title, description, includeMetadata } = validation.data;
 
   try {
     const updates: Partial<Pick<Subtask, "status" | "title" | "description">> = {};
@@ -560,7 +583,7 @@ export async function handleUpdateSubtask(
       };
     }
 
-    return { success: true, data: updatedTask };
+    return { success: true, data: toTaskResponse(updatedTask, includeMetadata) };
   } catch (error) {
     return {
       success: false,
@@ -581,7 +604,7 @@ export async function handleDeleteSubtask(
     return validation;
   }
 
-  const { subtaskId } = validation.data;
+  const { subtaskId, includeMetadata } = validation.data;
 
   try {
     const updatedTask = await context.taskManager.deleteSubtask(subtaskId);
@@ -593,7 +616,7 @@ export async function handleDeleteSubtask(
       };
     }
 
-    return { success: true, data: updatedTask };
+    return { success: true, data: toTaskResponse(updatedTask, includeMetadata) };
   } catch (error) {
     return {
       success: false,

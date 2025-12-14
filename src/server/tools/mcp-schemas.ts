@@ -15,7 +15,7 @@ export function getToolSchemas(): MCPToolSchema[] {
     {
       name: "get_tasks",
       description:
-        "Retrieve tasks with filtering by status, priority, date ranges, and pagination (max 20 tasks)",
+        "Retrieve tasks with filtering by status, priority, date ranges, and pagination (max 20 tasks). Metadata (created/updated/completedAt) excluded by default to save context.",
       inputSchema: {
         type: "object",
         properties: {
@@ -48,29 +48,39 @@ export function getToolSchemas(): MCPToolSchema[] {
           updatedBefore: { type: "string", description: "ISO8601 timestamp" },
           offset: { type: "number", description: "Pagination offset (default: 0)" },
           limit: { type: "number", description: "Pagination limit (default: 20, max: 20)" },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+          },
         },
       },
     },
     {
       name: "get_task",
-      description: "Retrieve a single task by ID with full details including subtasks",
+      description:
+        "Retrieve a single task by ID with full details including subtasks. Metadata excluded by default to save context.",
       inputSchema: {
         type: "object",
         required: ["id"],
         properties: {
           id: { type: "string", description: "Task UUID" },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+          },
         },
       },
     },
     {
       name: "create_task",
-      description: "Create a new task with title, description, priority, and dependencies",
+      description:
+        "Create a new task with title, description, priority, and dependencies. Metadata excluded by default to save context. IMPORTANT: Always store title and description in English, regardless of user's input language.",
       inputSchema: {
         type: "object",
         required: ["title"],
         properties: {
-          title: { type: "string", description: "Task title (required, max 200 chars)" },
-          description: { type: "string", description: "Optional task description" },
+          title: { type: "string", description: "Task title in English (required, max 200 chars)" },
+          description: { type: "string", description: "Optional task description in English" },
           priority: {
             type: "string",
             enum: ["high", "medium", "low"],
@@ -86,19 +96,24 @@ export function getToolSchemas(): MCPToolSchema[] {
             enum: ["pending", "in-progress", "blocked", "done", "deferred", "cancelled"],
             description: "Initial status (default: pending)",
           },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+          },
         },
       },
     },
     {
       name: "update_task",
-      description: "Update task fields (status, priority, description, dependencies)",
+      description:
+        "Update task fields (status, priority, description, dependencies). Metadata excluded by default to save context. IMPORTANT: Always store title and description in English, regardless of user's input language.",
       inputSchema: {
         type: "object",
         required: ["id"],
         properties: {
           id: { type: "string", description: "Task UUID" },
-          title: { type: "string", description: "New task title" },
-          description: { type: "string", description: "New task description" },
+          title: { type: "string", description: "New task title in English" },
+          description: { type: "string", description: "New task description in English" },
           status: {
             type: "string",
             enum: ["pending", "in-progress", "blocked", "done", "deferred", "cancelled"],
@@ -108,6 +123,10 @@ export function getToolSchemas(): MCPToolSchema[] {
             type: "array",
             items: { type: "string" },
             description: "Replace dependencies list",
+          },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
@@ -125,7 +144,8 @@ export function getToolSchemas(): MCPToolSchema[] {
     },
     {
       name: "get_next_task",
-      description: "Recommend the next task to work on based on dependencies and priority",
+      description:
+        "Recommend the next task to work on based on dependencies and priority. Metadata excluded by default to save context.",
       inputSchema: {
         type: "object",
         properties: {
@@ -152,12 +172,17 @@ export function getToolSchemas(): MCPToolSchema[] {
             ],
             description: "Filter candidates by priority",
           },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+          },
         },
       },
     },
     {
       name: "query_tasks",
-      description: "Advanced query with filtering, sorting, and field projection",
+      description:
+        "Advanced query with filtering, sorting, and field projection. Metadata excluded by default to save context.",
       inputSchema: {
         type: "object",
         properties: {
@@ -209,6 +234,10 @@ export function getToolSchemas(): MCPToolSchema[] {
             items: { type: "string" },
             description: "Project only these fields: id, title, status, priority, etc.",
           },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+          },
         },
       },
     },
@@ -222,20 +251,26 @@ export function getToolSchemas(): MCPToolSchema[] {
     },
     {
       name: "add_subtask",
-      description: "Add a subtask to an existing task",
+      description:
+        "Add a subtask to an existing task. Returns updated parent task. Metadata excluded by default to save context. IMPORTANT: Always store title and description in English, regardless of user's input language.",
       inputSchema: {
         type: "object",
         required: ["parentId", "title"],
         properties: {
           parentId: { type: "string", description: "Parent task UUID" },
-          title: { type: "string", description: "Subtask title" },
-          description: { type: "string", description: "Optional subtask description" },
+          title: { type: "string", description: "Subtask title in English" },
+          description: { type: "string", description: "Optional subtask description in English" },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+          },
         },
       },
     },
     {
       name: "update_subtask",
-      description: "Update a subtask's status, title, or description",
+      description:
+        "Update a subtask's status, title, or description. Returns updated parent task. Metadata excluded by default to save context. IMPORTANT: Always store title and description in English, regardless of user's input language.",
       inputSchema: {
         type: "object",
         required: ["subtaskId"],
@@ -248,14 +283,19 @@ export function getToolSchemas(): MCPToolSchema[] {
             type: "string",
             enum: ["pending", "in-progress", "blocked", "done", "deferred", "cancelled"],
           },
-          title: { type: "string" },
-          description: { type: "string" },
+          title: { type: "string", description: "Subtask title in English" },
+          description: { type: "string", description: "Subtask description in English" },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
+          },
         },
       },
     },
     {
       name: "delete_subtask",
-      description: "Remove a subtask from its parent",
+      description:
+        "Remove a subtask from its parent. Returns updated parent task. Metadata excluded by default to save context.",
       inputSchema: {
         type: "object",
         required: ["subtaskId"],
@@ -263,6 +303,10 @@ export function getToolSchemas(): MCPToolSchema[] {
           subtaskId: {
             type: "string",
             description: "Subtask ID in format 'parentId.N'",
+          },
+          includeMetadata: {
+            type: "boolean",
+            description: "Include metadata (created/updated/completedAt) in response (default: false)",
           },
         },
       },
