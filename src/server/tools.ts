@@ -6,17 +6,17 @@
  */
 
 import { z } from "zod";
-import type { TaskManager } from "../core/task-manager.js";
-import type { QueryEngine } from "../core/query.js";
-import type { MCPToolSchema } from "../types/mcp.js";
-import type { Task, Priority, TaskStatus } from "../types/task.js";
 import { DependencyGraph } from "../core/dependency.js";
+import type { QueryEngine } from "../core/query.js";
+import type { TaskManager } from "../core/task-manager.js";
+import type { MCPToolSchema } from "../types/mcp.js";
+import type { Priority, Task, TaskStatus } from "../types/task.js";
 import {
+  dependencyCycle,
+  internalError,
+  invalidParams,
   taskNotFound,
   validationError,
-  dependencyCycle,
-  invalidParams,
-  internalError,
 } from "./error-handler.js";
 
 /**
@@ -154,9 +154,7 @@ function validateParams<T>(
 /**
  * Normalize status/priority filters to arrays
  */
-function normalizeFilter<T>(
-  filter: T | T[] | undefined,
-): T[] | undefined {
+function normalizeFilter<T>(filter: T | T[] | undefined): T[] | undefined {
   if (!filter) return undefined;
   return Array.isArray(filter) ? filter : [filter];
 }
@@ -185,16 +183,22 @@ function projectTaskFields(task: Task, fields?: string[]): Partial<Task> {
 /**
  * get_tasks - Retrieve tasks with filtering and pagination
  */
-export async function handleGetTasks(
-  params: unknown,
-  context: ToolContext,
-): Promise<ToolResult> {
+export async function handleGetTasks(params: unknown, context: ToolContext): Promise<ToolResult> {
   const validation = validateParams(GetTasksSchema, params);
   if (!validation.success) {
     return validation;
   }
 
-  const { status, priority, createdAfter, createdBefore, updatedAfter, updatedBefore, offset, limit } = validation.data;
+  const {
+    status,
+    priority,
+    createdAfter,
+    createdBefore,
+    updatedAfter,
+    updatedBefore,
+    offset,
+    limit,
+  } = validation.data;
 
   try {
     const tasks = await context.queryEngine.queryTasks({
@@ -210,17 +214,17 @@ export async function handleGetTasks(
 
     return { success: true, data: tasks };
   } catch (error) {
-    return { success: false, error: internalError("Failed to retrieve tasks", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to retrieve tasks", { error: String(error) }),
+    };
   }
 }
 
 /**
  * get_task - Retrieve a single task by ID
  */
-export async function handleGetTask(
-  params: unknown,
-  context: ToolContext,
-): Promise<ToolResult> {
+export async function handleGetTask(params: unknown, context: ToolContext): Promise<ToolResult> {
   const validation = validateParams(GetTaskSchema, params);
   if (!validation.success) {
     return validation;
@@ -236,17 +240,17 @@ export async function handleGetTask(
 
     return { success: true, data: task };
   } catch (error) {
-    return { success: false, error: internalError("Failed to retrieve task", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to retrieve task", { error: String(error) }),
+    };
   }
 }
 
 /**
  * create_task - Create a new task
  */
-export async function handleCreateTask(
-  params: unknown,
-  context: ToolContext,
-): Promise<ToolResult> {
+export async function handleCreateTask(params: unknown, context: ToolContext): Promise<ToolResult> {
   const validation = validateParams(CreateTaskSchema, params);
   if (!validation.success) {
     return validation;
@@ -292,17 +296,17 @@ export async function handleCreateTask(
 
     return { success: true, data: task };
   } catch (error) {
-    return { success: false, error: internalError("Failed to create task", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to create task", { error: String(error) }),
+    };
   }
 }
 
 /**
  * update_task - Update an existing task
  */
-export async function handleUpdateTask(
-  params: unknown,
-  context: ToolContext,
-): Promise<ToolResult> {
+export async function handleUpdateTask(params: unknown, context: ToolContext): Promise<ToolResult> {
   const validation = validateParams(UpdateTaskSchema, params);
   if (!validation.success) {
     return validation;
@@ -361,17 +365,17 @@ export async function handleUpdateTask(
 
     return { success: true, data: updatedTask };
   } catch (error) {
-    return { success: false, error: internalError("Failed to update task", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to update task", { error: String(error) }),
+    };
   }
 }
 
 /**
  * delete_task - Delete a task
  */
-export async function handleDeleteTask(
-  params: unknown,
-  context: ToolContext,
-): Promise<ToolResult> {
+export async function handleDeleteTask(params: unknown, context: ToolContext): Promise<ToolResult> {
   const validation = validateParams(DeleteTaskSchema, params);
   if (!validation.success) {
     return validation;
@@ -393,7 +397,10 @@ export async function handleDeleteTask(
       },
     };
   } catch (error) {
-    return { success: false, error: internalError("Failed to delete task", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to delete task", { error: String(error) }),
+    };
   }
 }
 
@@ -419,17 +426,17 @@ export async function handleGetNextTask(
 
     return { success: true, data: recommendation };
   } catch (error) {
-    return { success: false, error: internalError("Failed to get next task", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to get next task", { error: String(error) }),
+    };
   }
 }
 
 /**
  * query_tasks - Advanced query with sorting and field projection
  */
-export async function handleQueryTasks(
-  params: unknown,
-  context: ToolContext,
-): Promise<ToolResult> {
+export async function handleQueryTasks(params: unknown, context: ToolContext): Promise<ToolResult> {
   const validation = validateParams(QueryTasksSchema, params);
   if (!validation.success) {
     return validation;
@@ -441,10 +448,10 @@ export async function handleQueryTasks(
     // Apply filters
     let tasks = await context.queryEngine.queryTasks({
       status: filters?.status
-        ? normalizeFilter(filters.status) as TaskStatus[] | undefined
+        ? (normalizeFilter(filters.status) as TaskStatus[] | undefined)
         : undefined,
       priority: filters?.priority
-        ? normalizeFilter(filters.priority) as Priority[] | undefined
+        ? (normalizeFilter(filters.priority) as Priority[] | undefined)
         : undefined,
       createdAfter: filters?.createdAfter,
       createdBefore: filters?.createdBefore,
@@ -470,7 +477,10 @@ export async function handleQueryTasks(
 
     return { success: true, data: tasks };
   } catch (error) {
-    return { success: false, error: internalError("Failed to query tasks", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to query tasks", { error: String(error) }),
+    };
   }
 }
 
@@ -561,17 +571,17 @@ export async function handleGetTaskStats(
 
     return { success: true, data: stats };
   } catch (error) {
-    return { success: false, error: internalError("Failed to get task stats", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to get task stats", { error: String(error) }),
+    };
   }
 }
 
 /**
  * add_subtask - Add a subtask to a parent task
  */
-export async function handleAddSubtask(
-  params: unknown,
-  context: ToolContext,
-): Promise<ToolResult> {
+export async function handleAddSubtask(params: unknown, context: ToolContext): Promise<ToolResult> {
   const validation = validateParams(AddSubtaskSchema, params);
   if (!validation.success) {
     return validation;
@@ -580,11 +590,7 @@ export async function handleAddSubtask(
   const { parentId, title, description } = validation.data;
 
   try {
-    const updatedTask = await context.taskManager.addSubtask(
-      parentId,
-      title,
-      description,
-    );
+    const updatedTask = await context.taskManager.addSubtask(parentId, title, description);
 
     if (!updatedTask) {
       return { success: false, error: taskNotFound(parentId) };
@@ -592,7 +598,10 @@ export async function handleAddSubtask(
 
     return { success: true, data: updatedTask };
   } catch (error) {
-    return { success: false, error: internalError("Failed to add subtask", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to add subtask", { error: String(error) }),
+    };
   }
 }
 
@@ -616,10 +625,7 @@ export async function handleUpdateSubtask(
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
 
-    const updatedTask = await context.taskManager.updateSubtask(
-      subtaskId,
-      updates,
-    );
+    const updatedTask = await context.taskManager.updateSubtask(subtaskId, updates);
 
     if (!updatedTask) {
       return {
@@ -630,7 +636,10 @@ export async function handleUpdateSubtask(
 
     return { success: true, data: updatedTask };
   } catch (error) {
-    return { success: false, error: internalError("Failed to update subtask", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to update subtask", { error: String(error) }),
+    };
   }
 }
 
@@ -660,7 +669,10 @@ export async function handleDeleteSubtask(
 
     return { success: true, data: updatedTask };
   } catch (error) {
-    return { success: false, error: internalError("Failed to delete subtask", { error: String(error) }) };
+    return {
+      success: false,
+      error: internalError("Failed to delete subtask", { error: String(error) }),
+    };
   }
 }
 
@@ -809,8 +821,7 @@ export function getToolSchemas(): MCPToolSchema[] {
     },
     {
       name: "get_next_task",
-      description:
-        "Recommend the next task to work on based on dependencies and priority",
+      description: "Recommend the next task to work on based on dependencies and priority",
       inputSchema: {
         type: "object",
         properties: {

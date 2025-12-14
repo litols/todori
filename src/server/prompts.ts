@@ -4,10 +4,9 @@
  * Implements session_restore and task_context prompts with <2KB responses.
  */
 
-import type { TaskManager } from "../core/task-manager.js";
 import type { QueryEngine } from "../core/query.js";
+import type { TaskManager } from "../core/task-manager.js";
 import type { MCPPromptSchema } from "../types/mcp.js";
-import type { Task } from "../types/task.js";
 
 /**
  * Prompt handler context
@@ -24,9 +23,7 @@ export interface PromptContext {
  * Returns task statistics, next recommended task, and recent updates.
  * Target: <2KB response
  */
-export async function sessionRestorePrompt(
-  context: PromptContext,
-): Promise<string> {
+export async function sessionRestorePrompt(context: PromptContext): Promise<string> {
   const allTasks = await context.taskManager.getAllTasks();
 
   // Calculate statistics
@@ -100,10 +97,7 @@ export async function sessionRestorePrompt(
  *
  * @param taskId - Task ID to get context for
  */
-export async function taskContextPrompt(
-  taskId: string,
-  context: PromptContext,
-): Promise<string> {
+export async function taskContextPrompt(taskId: string, context: PromptContext): Promise<string> {
   const task = await context.taskManager.getTask(taskId);
 
   if (!task) {
@@ -150,9 +144,7 @@ export async function taskContextPrompt(
   }
 
   // Dependent tasks (tasks that depend on this one)
-  const dependentTasks = allTasks.filter((t) =>
-    t.dependencies.includes(task.id),
-  );
+  const dependentTasks = allTasks.filter((t) => t.dependencies.includes(task.id));
   if (dependentTasks.length > 0) {
     response += `\n## Dependent Tasks (${dependentTasks.length})\n\n`;
     response += `*These tasks are blocked by this task:*\n\n`;
@@ -163,8 +155,7 @@ export async function taskContextPrompt(
 
   // Subtasks
   if (task.subtasks.length > 0) {
-    const completedCount = task.subtasks.filter((st) => st.status === "done")
-      .length;
+    const completedCount = task.subtasks.filter((st) => st.status === "done").length;
     response += `\n## Subtasks (${completedCount}/${task.subtasks.length} complete)\n\n`;
     for (const subtask of task.subtasks) {
       const checkbox = subtask.status === "done" ? "[x]" : "[ ]";

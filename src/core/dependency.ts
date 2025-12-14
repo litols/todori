@@ -2,7 +2,7 @@
  * DependencyGraph - Dependency tracking with cycle detection using Kahn's algorithm
  */
 
-import type { Task, TaskStatus } from "../types/task.js";
+import type { Task } from "../types/task.js";
 
 /**
  * Result of topological sort
@@ -39,13 +39,13 @@ export class DependencyGraph {
     if (!this.graph.has(dependsOn)) {
       this.graph.set(dependsOn, new Set());
     }
-    this.graph.get(dependsOn)!.add(taskId);
+    this.graph.get(dependsOn)?.add(taskId);
 
     // Add to reverse dependencies (taskId -> dependsOn)
     if (!this.reverseDeps.has(taskId)) {
       this.reverseDeps.set(taskId, new Set());
     }
-    this.reverseDeps.get(taskId)!.add(dependsOn);
+    this.reverseDeps.get(taskId)?.add(dependsOn);
 
     // Ensure nodes exist
     if (!this.graph.has(taskId)) {
@@ -65,12 +65,12 @@ export class DependencyGraph {
   removeDependency(taskId: string, dependsOn: string): void {
     // Remove from graph
     if (this.graph.has(dependsOn)) {
-      this.graph.get(dependsOn)!.delete(taskId);
+      this.graph.get(dependsOn)?.delete(taskId);
     }
 
     // Remove from reverse dependencies
     if (this.reverseDeps.has(taskId)) {
-      this.reverseDeps.get(taskId)!.delete(dependsOn);
+      this.reverseDeps.get(taskId)?.delete(dependsOn);
     }
   }
 
@@ -99,7 +99,7 @@ export class DependencyGraph {
           if (nodeIds.includes(dep)) {
             // Only count dependencies within our node set
             inDegree.set(nodeId, (inDegree.get(nodeId) || 0) + 1);
-            localGraph.get(dep)!.add(nodeId);
+            localGraph.get(dep)?.add(nodeId);
           }
         }
       }
@@ -136,9 +136,7 @@ export class DependencyGraph {
 
     // Check for cycles
     const hasCycle = sorted.length !== nodeIds.length;
-    const nodesInCycle = hasCycle
-      ? nodeIds.filter((id) => !sorted.includes(id))
-      : undefined;
+    const nodesInCycle = hasCycle ? nodeIds.filter((id) => !sorted.includes(id)) : undefined;
 
     return {
       sorted,
@@ -155,9 +153,7 @@ export class DependencyGraph {
    */
   getBlockedTasks(tasks: Task[]): string[] {
     const blocked: string[] = [];
-    const completedTasks = new Set(
-      tasks.filter((t) => t.status === "done").map((t) => t.id),
-    );
+    const completedTasks = new Set(tasks.filter((t) => t.status === "done").map((t) => t.id));
 
     for (const task of tasks) {
       // Skip if already done
@@ -166,9 +162,7 @@ export class DependencyGraph {
       }
 
       // Check if any dependency is incomplete
-      const hasIncompleteDeps = task.dependencies.some(
-        (depId) => !completedTasks.has(depId),
-      );
+      const hasIncompleteDeps = task.dependencies.some((depId) => !completedTasks.has(depId));
 
       if (hasIncompleteDeps && task.dependencies.length > 0) {
         blocked.push(task.id);

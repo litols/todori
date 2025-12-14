@@ -45,11 +45,7 @@ export const ErrorMessage = {
 /**
  * Create a standard MCP error object
  */
-export function createError(
-  code: number,
-  message?: string,
-  data?: unknown,
-): MCPError {
+export function createError(code: number, message?: string, data?: unknown): MCPError {
   return {
     code,
     message: message || ErrorMessage[code as keyof typeof ErrorMessage] || "Unknown error",

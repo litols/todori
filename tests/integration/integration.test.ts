@@ -3,13 +3,13 @@
  * Tests: project-detect.ts and session-restore.ts
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fs from "node:fs/promises";
-import * as path from "node:path";
 import * as os from "node:os";
-import { detectProjectRoot, initializeProject } from "../../src/integration/project-detect.js";
-import { restoreSession, type SessionContext } from "../../src/integration/session-restore.js";
+import * as path from "node:path";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { TaskManager } from "../../src/core/task-manager.js";
+import { detectProjectRoot, initializeProject } from "../../src/integration/project-detect.js";
+import { restoreSession } from "../../src/integration/session-restore.js";
 import { TaskStore } from "../../src/storage/task-store.js";
 import { TaskStatus } from "../../src/types/task.js";
 
@@ -438,7 +438,7 @@ describe("Integration - Session Restoration", () => {
     });
 
     test("prefers high priority task", async () => {
-      const lowPriority = await taskManager.createTask({
+      const _lowPriority = await taskManager.createTask({
         title: "Low Priority",
         status: TaskStatus.Pending,
         priority: "low" as any,
@@ -461,7 +461,7 @@ describe("Integration - Session Restoration", () => {
         status: TaskStatus.Pending,
       });
 
-      const blocked = await taskManager.createTask({
+      const _blocked = await taskManager.createTask({
         title: "Depends on Blocker",
         status: TaskStatus.Pending,
         dependencies: [blocker.id],
@@ -528,7 +528,7 @@ describe("Integration - Session Restoration", () => {
         dependencies: [task1.id],
       });
 
-      const task3 = await taskManager.createTask({
+      const _task3 = await taskManager.createTask({
         title: "Task 3",
         status: TaskStatus.Pending,
         dependencies: [task2.id],
@@ -569,7 +569,7 @@ describe("Integration - Session Restoration", () => {
         dependencies: [setupUI.id],
       });
 
-      const writeTests = await taskManager.createTask({
+      const _writeTests = await taskManager.createTask({
         title: "Write Tests",
         status: TaskStatus.Pending,
         priority: "medium" as any,
@@ -598,16 +598,12 @@ describe("Integration - Session Restoration", () => {
       expect(context.totalTasks).toBe(0);
       expect(context.nextTask).toBeNull();
       expect(context.recentTasks).toHaveLength(0);
-      expect(Object.values(context.statistics).reduce((a, b) => a + b, 0)).toBe(
-        0,
-      );
+      expect(Object.values(context.statistics).reduce((a, b) => a + b, 0)).toBe(0);
     });
 
     test("session context is valid after project initialization", async () => {
       // Fresh initialization
-      const newTestDir = await fs.mkdtemp(
-        path.join(os.tmpdir(), "todori-fresh-"),
-      );
+      const newTestDir = await fs.mkdtemp(path.join(os.tmpdir(), "todori-fresh-"));
 
       try {
         await initializeProject(newTestDir);

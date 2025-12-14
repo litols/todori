@@ -2,15 +2,14 @@
  * Tests for QueryEngine with filtering, sorting, and getNextTask
  */
 
-import { describe, test, expect, beforeEach } from "vitest";
+import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
+import { beforeEach, describe, expect, test } from "vitest";
 import { QueryEngine } from "../../src/core/query.js";
 import { TaskManager } from "../../src/core/task-manager.js";
 import { TaskStore } from "../../src/storage/task-store.js";
-import * as fs from "node:fs/promises";
-import * as path from "node:path";
-import * as os from "node:os";
-import type { Task } from "../../src/types/task.js";
-import { TaskStatus, Priority } from "../../src/types/task.js";
+import { Priority, TaskStatus } from "../../src/types/task.js";
 
 describe("QueryEngine", () => {
   let testDir: string;
@@ -114,15 +113,15 @@ describe("QueryEngine", () => {
 
   describe("sortTasks", () => {
     test("sorts by priority descending", async () => {
-      const low = await taskManager.createTask({
+      const _low = await taskManager.createTask({
         title: "Low",
         priority: Priority.Low,
       });
-      const high = await taskManager.createTask({
+      const _high = await taskManager.createTask({
         title: "High",
         priority: Priority.High,
       });
-      const medium = await taskManager.createTask({
+      const _medium = await taskManager.createTask({
         title: "Medium",
         priority: Priority.Medium,
       });
@@ -139,11 +138,11 @@ describe("QueryEngine", () => {
     });
 
     test("sorts by created date ascending", async () => {
-      const task1 = await taskManager.createTask({ title: "First" });
+      const _task1 = await taskManager.createTask({ title: "First" });
       await new Promise((resolve) => setTimeout(resolve, 10));
-      const task2 = await taskManager.createTask({ title: "Second" });
+      const _task2 = await taskManager.createTask({ title: "Second" });
       await new Promise((resolve) => setTimeout(resolve, 10));
-      const task3 = await taskManager.createTask({ title: "Third" });
+      const _task3 = await taskManager.createTask({ title: "Third" });
 
       const tasks = await taskManager.getAllTasks();
       const sorted = queryEngine.sortTasks(tasks, {
@@ -210,17 +209,15 @@ describe("QueryEngine", () => {
       const result = await queryEngine.getNextTask();
 
       expect(result.task).toBeNull();
-      expect(result.rationale).toContain(
-        "No pending or in-progress tasks available",
-      );
+      expect(result.rationale).toContain("No pending or in-progress tasks available");
     });
 
     test("priority influences recommendation", async () => {
-      const low = await taskManager.createTask({
+      const _low = await taskManager.createTask({
         title: "Low Priority",
         priority: Priority.Low,
       });
-      const high = await taskManager.createTask({
+      const _high = await taskManager.createTask({
         title: "High Priority",
         priority: Priority.High,
       });
@@ -253,7 +250,7 @@ describe("QueryEngine", () => {
         title: "Task B",
         dependencies: [taskA.id],
       });
-      const taskC = await taskManager.createTask({
+      const _taskC = await taskManager.createTask({
         title: "Task C",
         dependencies: [taskB.id],
       });

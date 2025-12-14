@@ -13,8 +13,7 @@
  * TODO: Understand TodoWrite status values and mappings
  */
 
-import type { Task, TaskStatus } from "../types/task.js";
-import { Priority } from "../types/task.js";
+import type { Task } from "../types/task.js";
 
 /**
  * Interface representing a TodoWrite task item
@@ -42,12 +41,6 @@ interface TodoWriteTask {
  */
 export class TodoWriteSync {
   /**
-   * Optional project root path for context
-   * Could be used for file path resolution or project-specific TodoWrite config
-   */
-  private projectRoot?: string;
-
-  /**
    * Initialize TodoWriteSync
    *
    * @param projectRoot - Optional project root directory path
@@ -55,9 +48,7 @@ export class TodoWriteSync {
    * TODO: Initialize TodoWrite API client once endpoint is documented
    * TODO: Load TodoWrite API credentials from environment or config
    */
-  constructor(projectRoot?: string) {
-    this.projectRoot = projectRoot;
-
+  constructor(_projectRoot?: string) {
     // TODO: Initialize TodoWrite API client
     // const todoWriteClient = new TodoWriteAPI(apiKey, apiEndpoint);
   }
@@ -88,12 +79,8 @@ export class TodoWriteSync {
    */
   async syncToTodoWrite(tasks: Task[]): Promise<void> {
     // Placeholder implementation
-    console.warn(
-      "[TodoWriteSync] syncToTodoWrite: PLACEHOLDER - Not implemented",
-    );
-    console.warn(
-      `[TodoWriteSync] Attempted to sync ${tasks.length} tasks to TodoWrite`,
-    );
+    console.warn("[TodoWriteSync] syncToTodoWrite: PLACEHOLDER - Not implemented");
+    console.warn(`[TodoWriteSync] Attempted to sync ${tasks.length} tasks to TodoWrite`);
 
     // Example skeleton of what the implementation would look like:
     /*
@@ -146,9 +133,7 @@ export class TodoWriteSync {
    */
   async syncFromTodoWrite(): Promise<Task[]> {
     // Placeholder implementation
-    console.warn(
-      "[TodoWriteSync] syncFromTodoWrite: PLACEHOLDER - Not implemented",
-    );
+    console.warn("[TodoWriteSync] syncFromTodoWrite: PLACEHOLDER - Not implemented");
 
     // Return empty array as placeholder
     return [];
@@ -170,161 +155,6 @@ export class TodoWriteSync {
       throw error;
     }
     */
-  }
-
-  /**
-   * Convert a Todori Task to TodoWrite format
-   *
-   * PLACEHOLDER - Not implemented
-   * TODO: Implement conversion logic once TodoWrite format is documented
-   * TODO: Handle all Task fields appropriately
-   * TODO: Map TaskStatus enum to TodoWrite status strings
-   * TODO: Consider custom metadata preservation
-   *
-   * @param task - Todori Task to convert
-   * @returns Converted task in TodoWrite format
-   */
-  private convertTaskToTodoWrite(task: Task): TodoWriteTask {
-    // Placeholder implementation
-    return {
-      id: task.id,
-      title: task.title,
-      status: task.status, // TODO: Map to actual TodoWrite status
-      description: task.description,
-    };
-  }
-
-  /**
-   * Convert a TodoWrite task to Todori Task format
-   *
-   * PLACEHOLDER - Not implemented
-   * TODO: Implement conversion logic once TodoWrite format is documented
-   * TODO: Parse TodoWrite response and extract all relevant fields
-   * TODO: Map TodoWrite status to TaskStatus enum
-   * TODO: Generate Todori-specific metadata (timestamps, IDs)
-   *
-   * @param todoWriteTask - TodoWrite task to convert
-   * @returns Converted task in Todori format
-   */
-  private convertTodoWriteToTask(todoWriteTask: TodoWriteTask): Task {
-    // Placeholder implementation - returns minimal valid Task
-    return {
-      id: todoWriteTask.id,
-      title: todoWriteTask.title,
-      description: todoWriteTask.description,
-      status: todoWriteTask.status as TaskStatus,
-      priority: Priority.Medium,
-      dependencies: [],
-      subtasks: [],
-      metadata: {
-        created: new Date().toISOString(),
-        updated: new Date().toISOString(),
-      },
-    };
-  }
-
-  /**
-   * Retrieve a task from TodoWrite by ID
-   *
-   * PLACEHOLDER - Not implemented
-   * TODO: Implement TodoWrite API GET call
-   * TODO: Add error handling for missing tasks (404)
-   * TODO: Add caching layer if needed for performance
-   *
-   * @param taskId - ID of task to retrieve
-   * @returns TodoWrite task or undefined if not found
-   */
-  private async getTodoWriteTask(
-    taskId: string,
-  ): Promise<TodoWriteTask | undefined> {
-    // Placeholder implementation
-    console.warn(
-      `[TodoWriteSync] getTodoWriteTask(${taskId}): PLACEHOLDER - Not implemented`,
-    );
-    return undefined;
-
-    // TODO: Implement actual API call
-    // return await this.todoWriteAPI.getTask(taskId);
-  }
-
-  /**
-   * Create a new task in TodoWrite
-   *
-   * PLACEHOLDER - Not implemented
-   * TODO: Implement TodoWrite API POST call
-   * TODO: Add request validation before sending
-   * TODO: Handle API error responses appropriately
-   * TODO: Return created task with assigned TodoWrite ID
-   *
-   * @param task - Task in TodoWrite format
-   * @returns Created task with TodoWrite ID
-   */
-  private async createTodoWriteTask(task: TodoWriteTask): Promise<TodoWriteTask> {
-    // Placeholder implementation
-    console.warn(
-      "[TodoWriteSync] createTodoWriteTask: PLACEHOLDER - Not implemented",
-    );
-    return task;
-
-    // TODO: Implement actual API call
-    // return await this.todoWriteAPI.createTask(task);
-  }
-
-  /**
-   * Update an existing task in TodoWrite
-   *
-   * PLACEHOLDER - Not implemented
-   * TODO: Implement TodoWrite API PUT/PATCH call
-   * TODO: Only send fields that have changed (delta updates)
-   * TODO: Handle optimistic locking if TodoWrite supports it
-   * TODO: Add version/timestamp checking for conflict detection
-   *
-   * @param taskId - ID of task to update
-   * @param task - Updated task data
-   * @returns Updated task
-   */
-  private async updateTodoWriteTask(
-    taskId: string,
-    task: TodoWriteTask,
-  ): Promise<TodoWriteTask> {
-    // Placeholder implementation
-    console.warn(
-      `[TodoWriteSync] updateTodoWriteTask(${taskId}): PLACEHOLDER - Not implemented`,
-    );
-    return task;
-
-    // TODO: Implement actual API call
-    // return await this.todoWriteAPI.updateTask(taskId, task);
-  }
-
-  /**
-   * Retrieve all tasks from TodoWrite
-   *
-   * PLACEHOLDER - Not implemented
-   * TODO: Implement TodoWrite API GET all call
-   * TODO: Handle pagination if TodoWrite API returns limited results
-   * TODO: Filter for active tasks if TodoWrite supports it
-   * TODO: Add caching with TTL for performance
-   *
-   * @returns Array of all TodoWrite tasks
-   */
-  private async getAllTodoWriteTasks(): Promise<TodoWriteTask[]> {
-    // Placeholder implementation
-    console.warn(
-      "[TodoWriteSync] getAllTodoWriteTasks: PLACEHOLDER - Not implemented",
-    );
-    return [];
-
-    // TODO: Implement actual API call with pagination support
-    // const tasks: TodoWriteTask[] = [];
-    // let page = 0;
-    // while (true) {
-    //   const batch = await this.todoWriteAPI.getTasks({ page, limit: 100 });
-    //   if (batch.length === 0) break;
-    //   tasks.push(...batch);
-    //   page++;
-    // }
-    // return tasks;
   }
 }
 

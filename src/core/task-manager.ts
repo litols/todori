@@ -3,9 +3,9 @@
  */
 
 import { v4 as uuidv4 } from "uuid";
-import { TaskStatus } from "../types/task.js";
-import type { Task, Priority, Subtask } from "../types/task.js";
 import type { TaskStore } from "../storage/task-store.js";
+import type { Priority, Subtask, Task } from "../types/task.js";
+import { TaskStatus } from "../types/task.js";
 
 /**
  * Options for creating a new task
@@ -86,10 +86,7 @@ export class TaskManager {
    * @param updates - Fields to update
    * @returns The updated task or null if not found
    */
-  async updateTask(
-    id: string,
-    updates: UpdateTaskOptions,
-  ): Promise<Task | null> {
+  async updateTask(id: string, updates: UpdateTaskOptions): Promise<Task | null> {
     const tasks = await this.storage.loadTasks();
     const taskIndex = tasks.findIndex((task) => task.id === id);
 
@@ -164,11 +161,7 @@ export class TaskManager {
    * @param description - Optional subtask description
    * @returns The updated parent task or null if not found
    */
-  async addSubtask(
-    parentId: string,
-    title: string,
-    description?: string,
-  ): Promise<Task | null> {
+  async addSubtask(parentId: string, title: string, description?: string): Promise<Task | null> {
     const tasks = await this.storage.loadTasks();
     const taskIndex = tasks.findIndex((task) => task.id === parentId);
 

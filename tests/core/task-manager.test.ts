@@ -2,13 +2,13 @@
  * Tests for TaskManager CRUD operations and subtask management
  */
 
-import { describe, test, expect, beforeEach } from "vitest";
+import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
+import { beforeEach, describe, expect, test } from "vitest";
 import { TaskManager } from "../../src/core/task-manager.js";
 import { TaskStore } from "../../src/storage/task-store.js";
-import * as fs from "node:fs/promises";
-import * as path from "node:path";
-import * as os from "node:os";
-import { TaskStatus, Priority } from "../../src/types/task.js";
+import { Priority, TaskStatus } from "../../src/types/task.js";
 
 describe("TaskManager", () => {
   let testDir: string;
@@ -153,11 +153,7 @@ describe("TaskManager", () => {
   describe("Subtask Management", () => {
     test("addSubtask creates subtask with parent.N format", async () => {
       const parent = await taskManager.createTask({ title: "Parent Task" });
-      const updated = await taskManager.addSubtask(
-        parent.id,
-        "Subtask 1",
-        "Description",
-      );
+      const updated = await taskManager.addSubtask(parent.id, "Subtask 1", "Description");
 
       expect(updated).not.toBeNull();
       expect(updated?.subtasks).toHaveLength(1);
@@ -180,10 +176,7 @@ describe("TaskManager", () => {
     });
 
     test("addSubtask returns null for non-existent parent", async () => {
-      const result = await taskManager.addSubtask(
-        "non-existent-id",
-        "Subtask",
-      );
+      const result = await taskManager.addSubtask("non-existent-id", "Subtask");
       expect(result).toBeNull();
     });
 

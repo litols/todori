@@ -10,29 +10,28 @@
  * We test our business logic (handlers) rather than the SDK itself.
  */
 
-import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "node:fs/promises";
-import * as path from "node:path";
 import * as os from "node:os";
-import { TaskStore } from "../../src/storage/task-store.js";
-import { TaskManager } from "../../src/core/task-manager.js";
+import * as path from "node:path";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { QueryEngine } from "../../src/core/query.js";
-import {
-  getToolSchemas,
-  ToolHandlers,
-  type ToolContext,
-  type ToolName,
-} from "../../src/server/tools.js";
+import { TaskManager } from "../../src/core/task-manager.js";
+import { initializeProject } from "../../src/integration/project-detect.js";
 import {
   getPromptSchemas,
+  type PromptContext,
   PromptHandlers,
+  type PromptName,
   sessionRestorePrompt,
   taskContextPrompt,
-  type PromptName,
-  type PromptContext,
 } from "../../src/server/prompts.js";
-import { initializeProject } from "../../src/integration/project-detect.js";
-import { TaskStatus } from "../../src/types/task.js";
+import {
+  getToolSchemas,
+  type ToolContext,
+  ToolHandlers,
+  type ToolName,
+} from "../../src/server/tools.js";
+import { TaskStore } from "../../src/storage/task-store.js";
 
 /**
  * Test fixture setup
@@ -200,10 +199,7 @@ describe("MCP Server - Integration Tests", () => {
   describe("Tools - get_task", () => {
     test("retrieves task by ID", async () => {
       // Create a task first
-      const createResult = await ToolHandlers.create_task(
-        { title: "Retrieve Me" },
-        toolContext,
-      );
+      const createResult = await ToolHandlers.create_task({ title: "Retrieve Me" }, toolContext);
 
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
@@ -211,10 +207,7 @@ describe("MCP Server - Integration Tests", () => {
       const created = createResult.data as any;
 
       // Retrieve it
-      const getResult = await ToolHandlers.get_task(
-        { id: created.id },
-        toolContext,
-      );
+      const getResult = await ToolHandlers.get_task({ id: created.id }, toolContext);
 
       expect(getResult.success).toBe(true);
       if (!getResult.success) return;
@@ -225,10 +218,7 @@ describe("MCP Server - Integration Tests", () => {
     });
 
     test("returns error for non-existent task", async () => {
-      const result = await ToolHandlers.get_task(
-        { id: "non-existent-id" },
-        toolContext,
-      );
+      const result = await ToolHandlers.get_task({ id: "non-existent-id" }, toolContext);
 
       expect(result.success).toBe(false);
       if (result.success) return;
@@ -241,10 +231,7 @@ describe("MCP Server - Integration Tests", () => {
   describe("Tools - update_task", () => {
     test("updates task fields", async () => {
       // Create task
-      const createResult = await ToolHandlers.create_task(
-        { title: "Original Title" },
-        toolContext,
-      );
+      const createResult = await ToolHandlers.create_task({ title: "Original Title" }, toolContext);
 
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
@@ -291,10 +278,7 @@ describe("MCP Server - Integration Tests", () => {
   describe("Tools - delete_task", () => {
     test("deletes task successfully", async () => {
       // Create task
-      const createResult = await ToolHandlers.create_task(
-        { title: "Delete Me" },
-        toolContext,
-      );
+      const createResult = await ToolHandlers.create_task({ title: "Delete Me" }, toolContext);
 
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
@@ -302,10 +286,7 @@ describe("MCP Server - Integration Tests", () => {
       const created = createResult.data as any;
 
       // Delete it
-      const deleteResult = await ToolHandlers.delete_task(
-        { id: created.id },
-        toolContext,
-      );
+      const deleteResult = await ToolHandlers.delete_task({ id: created.id }, toolContext);
 
       expect(deleteResult.success).toBe(true);
       if (!deleteResult.success) return;
@@ -315,19 +296,13 @@ describe("MCP Server - Integration Tests", () => {
       expect(deleteData.deletedId).toBe(created.id);
 
       // Verify it's gone
-      const getResult = await ToolHandlers.get_task(
-        { id: created.id },
-        toolContext,
-      );
+      const getResult = await ToolHandlers.get_task({ id: created.id }, toolContext);
 
       expect(getResult.success).toBe(false);
     });
 
     test("returns error for non-existent task", async () => {
-      const result = await ToolHandlers.delete_task(
-        { id: "does-not-exist" },
-        toolContext,
-      );
+      const result = await ToolHandlers.delete_task({ id: "does-not-exist" }, toolContext);
 
       expect(result.success).toBe(false);
       if (result.success) return;
@@ -355,21 +330,12 @@ describe("MCP Server - Integration Tests", () => {
 
     test("filters tasks by status", async () => {
       // Create tasks with different statuses
-      await ToolHandlers.create_task(
-        { title: "Pending Task", status: "pending" },
-        toolContext,
-      );
+      await ToolHandlers.create_task({ title: "Pending Task", status: "pending" }, toolContext);
 
-      await ToolHandlers.create_task(
-        { title: "Done Task", status: "done" },
-        toolContext,
-      );
+      await ToolHandlers.create_task({ title: "Done Task", status: "done" }, toolContext);
 
       // Filter by pending
-      const result = await ToolHandlers.get_tasks(
-        { status: "pending" },
-        toolContext,
-      );
+      const result = await ToolHandlers.get_tasks({ status: "pending" }, toolContext);
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -386,10 +352,7 @@ describe("MCP Server - Integration Tests", () => {
       }
 
       // Get with limit
-      const result = await ToolHandlers.get_tasks(
-        { limit: 3, offset: 0 },
-        toolContext,
-      );
+      const result = await ToolHandlers.get_tasks({ limit: 3, offset: 0 }, toolContext);
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -402,16 +365,10 @@ describe("MCP Server - Integration Tests", () => {
   describe("Tools - get_next_task", () => {
     test("recommends next task based on priority and dependencies", async () => {
       // Create high priority task
-      await ToolHandlers.create_task(
-        { title: "High Priority", priority: "high" },
-        toolContext,
-      );
+      await ToolHandlers.create_task({ title: "High Priority", priority: "high" }, toolContext);
 
       // Create low priority task
-      await ToolHandlers.create_task(
-        { title: "Low Priority", priority: "low" },
-        toolContext,
-      );
+      await ToolHandlers.create_task({ title: "Low Priority", priority: "low" }, toolContext);
 
       // Get next task
       const result = await ToolHandlers.get_next_task({}, toolContext);
@@ -437,15 +394,9 @@ describe("MCP Server - Integration Tests", () => {
   describe("Tools - query_tasks", () => {
     test("queries with filters and sorting", async () => {
       // Create tasks
-      await ToolHandlers.create_task(
-        { title: "A Task", priority: "high" },
-        toolContext,
-      );
+      await ToolHandlers.create_task({ title: "A Task", priority: "high" }, toolContext);
 
-      await ToolHandlers.create_task(
-        { title: "B Task", priority: "low" },
-        toolContext,
-      );
+      await ToolHandlers.create_task({ title: "B Task", priority: "low" }, toolContext);
 
       // Query with sort
       const result = await ToolHandlers.query_tasks(
@@ -489,15 +440,9 @@ describe("MCP Server - Integration Tests", () => {
   describe("Tools - get_task_stats", () => {
     test("calculates task statistics", async () => {
       // Create tasks with different statuses
-      await ToolHandlers.create_task(
-        { title: "Pending", status: "pending" },
-        toolContext,
-      );
+      await ToolHandlers.create_task({ title: "Pending", status: "pending" }, toolContext);
 
-      await ToolHandlers.create_task(
-        { title: "Done", status: "done" },
-        toolContext,
-      );
+      await ToolHandlers.create_task({ title: "Done", status: "done" }, toolContext);
 
       const result = await ToolHandlers.get_task_stats({}, toolContext);
 
@@ -529,10 +474,7 @@ describe("MCP Server - Integration Tests", () => {
   describe("Tools - Subtasks", () => {
     test("add_subtask creates subtask", async () => {
       // Create parent task
-      const createResult = await ToolHandlers.create_task(
-        { title: "Parent Task" },
-        toolContext,
-      );
+      const createResult = await ToolHandlers.create_task({ title: "Parent Task" }, toolContext);
 
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
@@ -559,20 +501,14 @@ describe("MCP Server - Integration Tests", () => {
 
     test("update_subtask modifies subtask status", async () => {
       // Create parent with subtask
-      const createResult = await ToolHandlers.create_task(
-        { title: "Parent" },
-        toolContext,
-      );
+      const createResult = await ToolHandlers.create_task({ title: "Parent" }, toolContext);
 
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
       const parent = createResult.data as any;
 
-      await ToolHandlers.add_subtask(
-        { parentId: parent.id, title: "Sub" },
-        toolContext,
-      );
+      await ToolHandlers.add_subtask({ parentId: parent.id, title: "Sub" }, toolContext);
 
       // Update subtask
       const updateResult = await ToolHandlers.update_subtask(
@@ -592,20 +528,14 @@ describe("MCP Server - Integration Tests", () => {
 
     test("delete_subtask removes subtask", async () => {
       // Create parent with subtask
-      const createResult = await ToolHandlers.create_task(
-        { title: "Parent" },
-        toolContext,
-      );
+      const createResult = await ToolHandlers.create_task({ title: "Parent" }, toolContext);
 
       expect(createResult.success).toBe(true);
       if (!createResult.success) return;
 
       const parent = createResult.data as any;
 
-      await ToolHandlers.add_subtask(
-        { parentId: parent.id, title: "Delete Me" },
-        toolContext,
-      );
+      await ToolHandlers.add_subtask({ parentId: parent.id, title: "Delete Me" }, toolContext);
 
       // Delete subtask
       const deleteResult = await ToolHandlers.delete_subtask(
@@ -760,10 +690,7 @@ describe("MCP Server - Integration Tests", () => {
 
     test("handles circular dependency creation", async () => {
       // Create task A
-      const resultA = await ToolHandlers.create_task(
-        { title: "Task A" },
-        toolContext,
-      );
+      const resultA = await ToolHandlers.create_task({ title: "Task A" }, toolContext);
       expect(resultA.success).toBe(true);
       if (!resultA.success) return;
 

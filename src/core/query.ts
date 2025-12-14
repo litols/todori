@@ -2,9 +2,9 @@
  * QueryEngine - Advanced task filtering and search with dependency-aware recommendations
  */
 
-import type { Task, TaskStatus, Priority } from "../types/task.js";
-import type { TaskManager } from "./task-manager.js";
+import type { Priority, Task, TaskStatus } from "../types/task.js";
 import { DependencyGraph } from "./dependency.js";
+import type { TaskManager } from "./task-manager.js";
 
 /**
  * Query filter options
@@ -57,46 +57,34 @@ export class QueryEngine {
 
     // Filter by status
     if (options.status) {
-      const statuses = Array.isArray(options.status)
-        ? options.status
-        : [options.status];
+      const statuses = Array.isArray(options.status) ? options.status : [options.status];
       tasks = tasks.filter((task) => statuses.includes(task.status));
     }
 
     // Filter by priority
     if (options.priority) {
-      const priorities = Array.isArray(options.priority)
-        ? options.priority
-        : [options.priority];
+      const priorities = Array.isArray(options.priority) ? options.priority : [options.priority];
       tasks = tasks.filter((task) => priorities.includes(task.priority));
     }
 
     // Filter by created date range
     if (options.createdAfter) {
       const after = new Date(options.createdAfter);
-      tasks = tasks.filter(
-        (task) => new Date(task.metadata.created) >= after,
-      );
+      tasks = tasks.filter((task) => new Date(task.metadata.created) >= after);
     }
     if (options.createdBefore) {
       const before = new Date(options.createdBefore);
-      tasks = tasks.filter(
-        (task) => new Date(task.metadata.created) <= before,
-      );
+      tasks = tasks.filter((task) => new Date(task.metadata.created) <= before);
     }
 
     // Filter by updated date range
     if (options.updatedAfter) {
       const after = new Date(options.updatedAfter);
-      tasks = tasks.filter(
-        (task) => new Date(task.metadata.updated) >= after,
-      );
+      tasks = tasks.filter((task) => new Date(task.metadata.updated) >= after);
     }
     if (options.updatedBefore) {
       const before = new Date(options.updatedBefore);
-      tasks = tasks.filter(
-        (task) => new Date(task.metadata.updated) <= before,
-      );
+      tasks = tasks.filter((task) => new Date(task.metadata.updated) <= before);
     }
 
     // Apply field selection
@@ -147,13 +135,11 @@ export class QueryEngine {
         }
         case "created":
           compareValue =
-            new Date(a.metadata.created).getTime() -
-            new Date(b.metadata.created).getTime();
+            new Date(a.metadata.created).getTime() - new Date(b.metadata.created).getTime();
           break;
         case "updated":
           compareValue =
-            new Date(a.metadata.updated).getTime() -
-            new Date(b.metadata.updated).getTime();
+            new Date(a.metadata.updated).getTime() - new Date(b.metadata.updated).getTime();
           break;
         case "status": {
           // Define status order: pending < in-progress < blocked < done < deferred < cancelled
@@ -185,16 +171,13 @@ export class QueryEngine {
    * @param options - Optional filters for task selection
    * @returns NextTaskRecommendation with task and rationale
    */
-  async getNextTask(
-    options: QueryOptions = {},
-  ): Promise<NextTaskRecommendation> {
+  async getNextTask(options: QueryOptions = {}): Promise<NextTaskRecommendation> {
     // Get all tasks
     const allTasks = await this.taskManager.getAllTasks();
 
     // Filter to workable tasks (pending or in-progress)
     const workableTasks = allTasks.filter(
-      (task) =>
-        task.status === "pending" || task.status === ("in-progress" as TaskStatus),
+      (task) => task.status === "pending" || task.status === ("in-progress" as TaskStatus),
     );
 
     if (workableTasks.length === 0) {
@@ -207,20 +190,12 @@ export class QueryEngine {
     // Apply additional filters from options
     let filteredTasks = workableTasks;
     if (options.status) {
-      const statuses = Array.isArray(options.status)
-        ? options.status
-        : [options.status];
-      filteredTasks = filteredTasks.filter((task) =>
-        statuses.includes(task.status),
-      );
+      const statuses = Array.isArray(options.status) ? options.status : [options.status];
+      filteredTasks = filteredTasks.filter((task) => statuses.includes(task.status));
     }
     if (options.priority) {
-      const priorities = Array.isArray(options.priority)
-        ? options.priority
-        : [options.priority];
-      filteredTasks = filteredTasks.filter((task) =>
-        priorities.includes(task.priority),
-      );
+      const priorities = Array.isArray(options.priority) ? options.priority : [options.priority];
+      filteredTasks = filteredTasks.filter((task) => priorities.includes(task.priority));
     }
 
     if (filteredTasks.length === 0) {
@@ -237,9 +212,7 @@ export class QueryEngine {
     const blockedTaskIds = new Set(graph.getBlockedTasks(allTasks));
 
     // Filter out blocked tasks
-    const unblockedTasks = filteredTasks.filter(
-      (task) => !blockedTaskIds.has(task.id),
-    );
+    const unblockedTasks = filteredTasks.filter((task) => !blockedTaskIds.has(task.id));
 
     if (unblockedTasks.length === 0) {
       return {
@@ -309,9 +282,7 @@ export class QueryEngine {
         reasons.push("topologically first");
       }
 
-      rationale = reasons.length > 0
-        ? `Recommended: ${reasons.join(", ")}`
-        : "Best available task";
+      rationale = reasons.length > 0 ? `Recommended: ${reasons.join(", ")}` : "Best available task";
     }
 
     return {

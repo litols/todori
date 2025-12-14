@@ -6,8 +6,8 @@
  */
 
 import { createInterface } from "node:readline";
-import type { MCPRequest, MCPResponse, MCPError } from "../types/mcp.js";
-import { parseError, invalidRequest } from "./error-handler.js";
+import type { MCPError, MCPRequest, MCPResponse } from "../types/mcp.js";
+import { invalidRequest, parseError } from "./error-handler.js";
 
 /**
  * Stdio transport for JSON-RPC 2.0 communication
@@ -44,7 +44,7 @@ export class StdioTransport {
         try {
           const parsed = JSON.parse(line);
           resolve(parsed as MCPRequest);
-        } catch (error) {
+        } catch (_error) {
           // Return null for parse errors - caller will handle
           resolve(null);
         }
@@ -119,7 +119,7 @@ export class StdioTransport {
       // Parse JSON
       try {
         request = JSON.parse(line);
-      } catch (error) {
+      } catch (_error) {
         // Invalid JSON - send parse error
         this.writeError(null, parseError({ raw: line }));
         continue;
@@ -131,10 +131,7 @@ export class StdioTransport {
         if (request && typeof request === "object" && "id" in request) {
           requestId = (request as { id: string | number }).id;
         }
-        this.writeError(
-          requestId,
-          invalidRequest("Invalid JSON-RPC 2.0 request structure"),
-        );
+        this.writeError(requestId, invalidRequest("Invalid JSON-RPC 2.0 request structure"));
         continue;
       }
 
@@ -144,19 +141,19 @@ export class StdioTransport {
         this.writeMessage(response);
       } catch (error) {
         // Unexpected error during request handling
-        const errorData = error instanceof Error ? {
-          message: error.message,
-          stack: error.stack,
-        } : { error: String(error) };
+        const errorData =
+          error instanceof Error
+            ? {
+                message: error.message,
+                stack: error.stack,
+              }
+            : { error: String(error) };
 
-        this.writeError(
-          request.id,
-          {
-            code: -32603,
-            message: "Internal error during request processing",
-            data: errorData,
-          },
-        );
+        this.writeError(request.id, {
+          code: -32603,
+          message: "Internal error during request processing",
+          data: errorData,
+        });
       }
     }
   }
@@ -172,9 +169,10 @@ export class StdioTransport {
 
     if (!this.validateRequest(request)) {
       // Extract ID if available
-      const id = (request && typeof request === "object" && "id" in request)
-        ? (request as { id: string | number }).id
-        : 0;
+      const id =
+        request && typeof request === "object" && "id" in request
+          ? (request as { id: string | number }).id
+          : 0;
 
       return {
         jsonrpc: "2.0",

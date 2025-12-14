@@ -7,26 +7,26 @@
  * Provides tools and prompts for Claude Code integration.
  */
 
+import process from "node:process";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
-  ListToolsRequestSchema,
   GetPromptRequestSchema,
   ListPromptsRequestSchema,
+  ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import process from "node:process";
+import { QueryEngine } from "../core/query.js";
+import { TaskManager } from "../core/task-manager.js";
 import { detectProjectRoot, initializeProject } from "../integration/project-detect.js";
 import { TaskStore } from "../storage/task-store.js";
-import { TaskManager } from "../core/task-manager.js";
-import { QueryEngine } from "../core/query.js";
-import { getToolSchemas, ToolHandlers, type ToolName } from "./tools.js";
 import {
   getPromptSchemas,
+  type PromptContext,
   PromptHandlers,
   type PromptName,
-  type PromptContext,
 } from "./prompts.js";
+import { getToolSchemas, ToolHandlers, type ToolName } from "./tools.js";
 
 /**
  * Server version

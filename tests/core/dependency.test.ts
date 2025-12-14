@@ -2,7 +2,7 @@
  * Tests for DependencyGraph with cycle detection and topological sort
  */
 
-import { describe, test, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { DependencyGraph } from "../../src/core/dependency.js";
 import type { Task } from "../../src/types/task.js";
 
@@ -64,9 +64,7 @@ describe("DependencyGraph", () => {
       expect(result.sorted.length).toBe(3);
       expect(result.hasCycle).toBe(false);
       // task-a must come before task-b
-      expect(result.sorted.indexOf("task-a")).toBeLessThan(
-        result.sorted.indexOf("task-b"),
-      );
+      expect(result.sorted.indexOf("task-a")).toBeLessThan(result.sorted.indexOf("task-b"));
     });
 
     test("diamond dependency resolves correctly", () => {
@@ -77,12 +75,7 @@ describe("DependencyGraph", () => {
       graph.addDependency("task-d", "task-b");
       graph.addDependency("task-d", "task-c");
 
-      const result = graph.topologicalSort([
-        "task-a",
-        "task-b",
-        "task-c",
-        "task-d",
-      ]);
+      const result = graph.topologicalSort(["task-a", "task-b", "task-c", "task-d"]);
 
       expect(result.hasCycle).toBe(false);
       expect(result.sorted[0]).toBe("task-a");
@@ -99,11 +92,7 @@ describe("DependencyGraph", () => {
   });
 
   describe("getBlockedTasks", () => {
-    const createTask = (
-      id: string,
-      status: string,
-      deps: string[] = [],
-    ): Task => ({
+    const createTask = (id: string, status: string, deps: string[] = []): Task => ({
       id,
       title: `Task ${id}`,
       status: status as any,
@@ -133,10 +122,7 @@ describe("DependencyGraph", () => {
     });
 
     test("completed tasks not included in blocked list", () => {
-      const tasks = [
-        createTask("task-a", "pending"),
-        createTask("task-b", "done", ["task-a"]),
-      ];
+      const tasks = [createTask("task-a", "pending"), createTask("task-b", "done", ["task-a"])];
 
       graph = DependencyGraph.fromTasks(tasks);
       const blocked = graph.getBlockedTasks(tasks);
@@ -145,10 +131,7 @@ describe("DependencyGraph", () => {
     });
 
     test("tasks with no dependencies not blocked", () => {
-      const tasks = [
-        createTask("task-a", "pending"),
-        createTask("task-b", "pending"),
-      ];
+      const tasks = [createTask("task-a", "pending"), createTask("task-b", "pending")];
 
       graph = DependencyGraph.fromTasks(tasks);
       const blocked = graph.getBlockedTasks(tasks);

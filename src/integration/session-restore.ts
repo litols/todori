@@ -3,9 +3,9 @@
  * Provides statistics, next task recommendation, and recent tasks
  */
 
+import { QueryEngine, TaskManager } from "../core/index.js";
 import { TaskStore } from "../storage/task-store.js";
-import { TaskManager, QueryEngine } from "../core/index.js";
-import type { Task, TaskStatus } from "../types/task.js";
+import type { Task } from "../types/task.js";
 
 /**
  * Session context containing task statistics and recommendations
@@ -23,9 +23,7 @@ export interface SessionContext {
  * @param projectRoot - Project root directory path
  * @returns SessionContext with statistics and recommendations
  */
-export async function restoreSession(
-  projectRoot: string,
-): Promise<SessionContext> {
+export async function restoreSession(projectRoot: string): Promise<SessionContext> {
   // Initialize storage and core managers
   const taskStore = new TaskStore(projectRoot);
   const taskManager = new TaskManager(taskStore);
@@ -55,10 +53,7 @@ export async function restoreSession(
   // Get 5 most recently updated tasks
   const recentTasks = allTasks
     .sort((a, b) => {
-      return (
-        new Date(b.metadata.updated).getTime() -
-        new Date(a.metadata.updated).getTime()
-      );
+      return new Date(b.metadata.updated).getTime() - new Date(a.metadata.updated).getTime();
     })
     .slice(0, 5);
 
