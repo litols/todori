@@ -12,7 +12,7 @@ import { detectProjectRoot, initializeProject } from "../../src/integration/proj
 import { restoreSession } from "../../src/integration/session-restore.js";
 import { TaskStore } from "../../src/storage/task-store.js";
 import type { Task } from "../../src/types/task.js";
-import { TaskStatus } from "../../src/types/task.js";
+import { Priority, TaskStatus } from "../../src/types/task.js";
 
 describe("Integration - Project Detection", () => {
   let testDir: string;
@@ -442,13 +442,13 @@ describe("Integration - Session Restoration", () => {
       const _lowPriority = await taskManager.createTask({
         title: "Low Priority",
         status: TaskStatus.Pending,
-        priority: "low" as unknown as "low",
+        priority: Priority.Low,
       });
 
       const highPriority = await taskManager.createTask({
         title: "High Priority",
         status: TaskStatus.Pending,
-        priority: "high" as unknown as "high",
+        priority: Priority.High,
       });
 
       const context = await restoreSession(testDir);
@@ -559,21 +559,21 @@ describe("Integration - Session Restoration", () => {
       const createButton = await taskManager.createTask({
         title: "Create Button Component",
         status: TaskStatus.InProgress,
-        priority: "high" as unknown as "high",
+        priority: Priority.High,
         dependencies: [setupUI.id],
       });
 
       const createForm = await taskManager.createTask({
         title: "Create Form Component",
         status: TaskStatus.Pending,
-        priority: "high" as unknown as "high",
+        priority: Priority.High,
         dependencies: [setupUI.id],
       });
 
       const _writeTests = await taskManager.createTask({
         title: "Write Tests",
         status: TaskStatus.Pending,
-        priority: "medium" as unknown as "medium",
+        priority: Priority.Medium,
         dependencies: [createButton.id, createForm.id],
       });
 

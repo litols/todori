@@ -89,12 +89,13 @@ export class QueryEngine {
 
     // Apply field selection
     if (options.fields && options.fields.length > 0) {
+      const fields = options.fields; // Capture for type narrowing
       tasks = tasks.map((task) => {
-        const filtered: any = {};
-        for (const field of options.fields!) {
-          filtered[field] = task[field];
+        const filtered: Record<string, unknown> = {};
+        for (const field of fields) {
+          filtered[field] = task[field as keyof Task];
         }
-        return filtered as Task;
+        return filtered as unknown as Task;
       });
     }
 

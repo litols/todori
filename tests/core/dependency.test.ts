@@ -5,6 +5,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { DependencyGraph } from "../../src/core/dependency.js";
 import type { Task } from "../../src/types/task.js";
+import { Priority, TaskStatus } from "../../src/types/task.js";
 
 describe("DependencyGraph", () => {
   let graph: DependencyGraph;
@@ -92,11 +93,11 @@ describe("DependencyGraph", () => {
   });
 
   describe("getBlockedTasks", () => {
-    const createTask = (id: string, status: string, deps: string[] = []): Task => ({
+    const createTask = (id: string, status: TaskStatus, deps: string[] = []): Task => ({
       id,
       title: `Task ${id}`,
-      status: status as any,
-      priority: "medium" as any,
+      status,
+      priority: Priority.Medium,
       dependencies: deps,
       subtasks: [],
       metadata: {
@@ -107,10 +108,10 @@ describe("DependencyGraph", () => {
 
     test("returns tasks with incomplete dependencies", () => {
       const tasks = [
-        createTask("task-a", "done"),
-        createTask("task-b", "pending", ["task-a"]),
-        createTask("task-c", "pending", ["task-d"]),
-        createTask("task-d", "pending"),
+        createTask("task-a", TaskStatus.Done),
+        createTask("task-b", TaskStatus.Pending, ["task-a"]),
+        createTask("task-c", TaskStatus.Pending, ["task-d"]),
+        createTask("task-d", TaskStatus.Pending),
       ];
 
       graph = DependencyGraph.fromTasks(tasks);
@@ -122,7 +123,10 @@ describe("DependencyGraph", () => {
     });
 
     test("completed tasks not included in blocked list", () => {
-      const tasks = [createTask("task-a", "pending"), createTask("task-b", "done", ["task-a"])];
+      const tasks = [
+        createTask("task-a", TaskStatus.Pending),
+        createTask("task-b", TaskStatus.Done, ["task-a"]),
+      ];
 
       graph = DependencyGraph.fromTasks(tasks);
       const blocked = graph.getBlockedTasks(tasks);
@@ -131,7 +135,10 @@ describe("DependencyGraph", () => {
     });
 
     test("tasks with no dependencies not blocked", () => {
-      const tasks = [createTask("task-a", "pending"), createTask("task-b", "pending")];
+      const tasks = [
+        createTask("task-a", TaskStatus.Pending),
+        createTask("task-b", TaskStatus.Pending),
+      ];
 
       graph = DependencyGraph.fromTasks(tasks);
       const blocked = graph.getBlockedTasks(tasks);
@@ -146,8 +153,8 @@ describe("DependencyGraph", () => {
         {
           id: "task-a",
           title: "Task A",
-          status: "pending" as any,
-          priority: "medium" as any,
+          status: TaskStatus.Pending,
+          priority: Priority.Medium,
           dependencies: [],
           subtasks: [],
           metadata: {
@@ -158,8 +165,8 @@ describe("DependencyGraph", () => {
         {
           id: "task-b",
           title: "Task B",
-          status: "pending" as any,
-          priority: "medium" as any,
+          status: TaskStatus.Pending,
+          priority: Priority.Medium,
           dependencies: ["task-a"],
           subtasks: [],
           metadata: {

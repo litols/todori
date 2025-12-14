@@ -19,7 +19,7 @@ import type { Task } from "../types/task.js";
  * Interface representing a TodoWrite task item
  * TODO: Replace with actual TodoWrite API response type once documented
  */
-interface TodoWriteTask {
+export interface TodoWriteTask {
   id: string;
   title: string;
   status: string; // TODO: Map to TodoWrite status format
@@ -40,19 +40,6 @@ interface TodoWriteTask {
  * be completed.
  */
 export class TodoWriteSync {
-  /**
-   * Initialize TodoWriteSync
-   *
-   * @param projectRoot - Optional project root directory path
-   *
-   * TODO: Initialize TodoWrite API client once endpoint is documented
-   * TODO: Load TodoWrite API credentials from environment or config
-   */
-  constructor(_projectRoot?: string) {
-    // TODO: Initialize TodoWrite API client
-    // const todoWriteClient = new TodoWriteAPI(apiKey, apiEndpoint);
-  }
-
   /**
    * Synchronize Todori tasks to TodoWrite
    *
@@ -170,11 +157,11 @@ export class TodoWriteSync {
  * @param projectRoot - Optional project root directory
  * @returns Initialized TodoWriteSync instance
  */
-export function createTodoWriteSync(projectRoot?: string): TodoWriteSync {
+export function createTodoWriteSync(_projectRoot?: string): TodoWriteSync {
   // TODO: Load configuration
   // TODO: Validate API credentials
   // TODO: Add feature flag to enable/disable syncing
-  return new TodoWriteSync(projectRoot);
+  return new TodoWriteSync();
 }
 
 /**

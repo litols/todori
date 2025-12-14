@@ -117,14 +117,17 @@ export class DependencyGraph {
 
     // Process nodes with 0 in-degree
     while (queue.length > 0) {
-      const current = queue.shift()!;
+      const current = queue.shift();
+      if (!current) break; // Should never happen, but satisfy type checker
       sorted.push(current);
 
       // Reduce in-degree of dependent nodes
       const dependents = localGraph.get(current);
       if (dependents) {
         for (const dependent of dependents) {
-          const newDegree = inDegree.get(dependent)! - 1;
+          const currentDegree = inDegree.get(dependent);
+          if (currentDegree === undefined) continue; // Should never happen
+          const newDegree = currentDegree - 1;
           inDegree.set(dependent, newDegree);
 
           if (newDegree === 0) {

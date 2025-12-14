@@ -378,7 +378,8 @@ describe("MCP Server - Integration Tests", () => {
       if (!result.success) return;
 
       const recommendation = result.data as unknown as { task: Task | null; reason: string };
-      expect(recommendation.task.title).toBe("High Priority");
+      expect(recommendation.task).not.toBeNull();
+      expect(recommendation.task?.title).toBe("High Priority");
     });
 
     test("returns null when no tasks available", async () => {

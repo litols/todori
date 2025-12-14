@@ -10,7 +10,7 @@ import { DependencyGraph } from "../core/dependency.js";
 import type { QueryEngine } from "../core/query.js";
 import type { TaskManager } from "../core/task-manager.js";
 import type { MCPToolSchema } from "../types/mcp.js";
-import type { Priority, Task, TaskStatus } from "../types/task.js";
+import type { Priority, Subtask, Task, TaskStatus } from "../types/task.js";
 import {
   dependencyCycle,
   internalError,
@@ -167,13 +167,13 @@ function projectTaskFields(task: Task, fields?: string[]): Partial<Task> {
     return task;
   }
 
-  const projected: any = {};
+  const projected: Record<string, unknown> = {};
   for (const field of fields) {
     if (field in task) {
       projected[field] = task[field as keyof Task];
     }
   }
-  return projected;
+  return projected as Partial<Task>;
 }
 
 // ============================================================================
@@ -620,7 +620,7 @@ export async function handleUpdateSubtask(
   const { subtaskId, status, title, description } = validation.data;
 
   try {
-    const updates: any = {};
+    const updates: Partial<Pick<Subtask, "status" | "title" | "description">> = {};
     if (status !== undefined) updates.status = status as TaskStatus;
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
