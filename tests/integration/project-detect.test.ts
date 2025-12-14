@@ -201,16 +201,11 @@ describe("Integration - Project Detection", () => {
     });
 
     test("throws error with meaningful message on failure", async () => {
-      // Try to create in a read-only parent (use a path that won't work)
-      const invalidPath = "/root/nonexistent/project-xyz123";
+      // Use a truly invalid path that will fail on mkdir
+      // Using a null byte in path which is invalid on all systems
+      const invalidPath = "/tmp/invalid\0path";
 
-      try {
-        await initializeProject(invalidPath);
-        expect(true).toBe(false); // Should not reach here
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-        expect((error as Error).message).toContain("Failed to initialize project");
-      }
+      await expect(initializeProject(invalidPath)).rejects.toThrow("Failed to initialize project");
     });
   });
 });

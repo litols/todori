@@ -69,6 +69,23 @@ interface Task {
 mise install  # Installs Bun 1.3.4
 ```
 
+### Adding Dependencies
+
+When adding new dependencies to `package.json`:
+
+1. **Add the dependency** to the appropriate section in `package.json`
+2. **Update the lockfile** (IMPORTANT):
+   ```bash
+   bun install
+   ```
+3. **Commit both files** together:
+   ```bash
+   git add package.json bun.lockb
+   git commit -m "deps: Add [package-name]"
+   ```
+
+**Note**: CI uses `--frozen-lockfile`, so the lockfile MUST be updated and committed when dependencies change. Never commit `package.json` changes without also updating `bun.lockb`.
+
 ## Rule
 - You need to use tools through bun or bunx if bun or bunx is prefer to the task.
 - Please make git commits at appropriate intervals. DON'T touch .gitignore files.
