@@ -100,22 +100,48 @@ Updates an existing task.
 - `title` (string, optional): New title
 - `description` (string, optional): New description
 - `status` (TaskStatus, optional): New status
-- `priority` (number, optional): New priority
+- `priority` (string, optional): New priority ("high", "medium", "low")
+- `dependencies` (string[], optional): Replace dependencies list
+- `assignee` (object | null, optional): Assign task to a session for multi-agent coordination
+  - `sessionId` (string, required): Session identifier (e.g., branch name)
+  - `assignedAt` (string, optional): ISO8601 timestamp (auto-set if not provided)
+  - Set to `null` to clear the assignee
 
 **Returns:**
 ```typescript
 {
   id: string;
-  updated: ISO8601;
+  title: string;
+  status: TaskStatus;
+  // ... other task fields
 }
 ```
 
-**Example:**
+**Example - Basic update:**
 ```typescript
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "in-progress",
-  "priority": 90
+  "priority": "high"
+}
+```
+
+**Example - Assign to session (ccmanager):**
+```typescript
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "in-progress",
+  "assignee": {
+    "sessionId": "feature-auth"
+  }
+}
+```
+
+**Example - Clear assignee:**
+```typescript
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "assignee": null
 }
 ```
 
@@ -244,6 +270,47 @@ Expands a task into subtasks using Claude Code's context understanding.
 
 ## Query Tools
 
+### `get_next_task`
+
+Recommends the next task to work on based on dependencies and priority.
+
+**Parameters:**
+- `status` (string | string[], optional): Filter candidates by status (default: pending, in-progress)
+- `priority` (string | string[], optional): Filter candidates by priority
+- `currentSessionId` (string, optional): Current session identifier. When provided, excludes tasks assigned to other sessions (for ccmanager multi-agent coordination)
+- `includeMetadata` (boolean, optional): Include timestamps in response (default: false)
+
+**Returns:**
+```typescript
+{
+  task: Task | null;
+  rationale: string;  // Explanation of why this task was recommended
+}
+```
+
+**Example - Basic usage:**
+```typescript
+get_next_task({})
+// Returns highest priority unblocked task
+```
+
+**Example - Multi-agent (ccmanager):**
+```typescript
+get_next_task({
+  currentSessionId: "feature-auth"
+})
+// Returns next task not assigned to other sessions
+```
+
+**Recommendation Logic:**
+1. Filters to pending/in-progress tasks
+2. Excludes tasks assigned to other sessions (if `currentSessionId` provided)
+3. Excludes tasks blocked by incomplete dependencies
+4. Sorts by priority (high → medium → low)
+5. Returns the first available task with rationale
+
+---
+
 ### `query_tasks`
 
 Advanced task querying with filters and sorting.
@@ -307,15 +374,33 @@ interface Task {
   title: string;
   description?: string;
   status: TaskStatus;
-  priority: number;              // 0-100
+  priority: Priority;            // "high" | "medium" | "low"
   dependencies: string[];        // Task IDs
   subtasks: Subtask[];
+  assignee?: TaskAssignee;       // For multi-agent coordination
   metadata: {
     created: ISO8601;
     updated: ISO8601;
     completedAt?: ISO8601;
   };
 }
+```
+
+### TaskAssignee
+
+```typescript
+interface TaskAssignee {
+  sessionId: string;    // Session identifier (e.g., branch name, worktree name)
+  assignedAt: string;   // ISO8601 timestamp
+}
+```
+
+Used for multi-agent coordination with [ccmanager](https://github.com/kbwo/ccmanager). When a task has an assignee, other sessions can exclude it from `get_next_task` results by providing their `currentSessionId`.
+
+### Priority
+
+```typescript
+type Priority = "high" | "medium" | "low";
 ```
 
 ### Subtask

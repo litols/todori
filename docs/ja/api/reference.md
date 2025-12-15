@@ -100,22 +100,48 @@ IDで特定のタスクを取得します。
 - `title` (string, オプション): 新しいタイトル
 - `description` (string, オプション): 新しい説明
 - `status` (TaskStatus, オプション): 新しいステータス
-- `priority` (number, オプション): 新しい優先度
+- `priority` (string, オプション): 新しい優先度（"high"、"medium"、"low"）
+- `dependencies` (string[], オプション): 依存関係リストを置換
+- `assignee` (object | null, オプション): マルチエージェント連携用にタスクをセッションに割り当て
+  - `sessionId` (string, 必須): セッション識別子（例：ブランチ名）
+  - `assignedAt` (string, オプション): ISO8601タイムスタンプ（未指定時は自動設定）
+  - `null`に設定すると担当者をクリア
 
 **戻り値:**
 ```typescript
 {
   id: string;
-  updated: ISO8601;
+  title: string;
+  status: TaskStatus;
+  // ... その他のタスクフィールド
 }
 ```
 
-**例:**
+**例 - 基本的な更新:**
 ```typescript
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "in-progress",
-  "priority": 90
+  "priority": "high"
+}
+```
+
+**例 - セッションへの割り当て（ccmanager）:**
+```typescript
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "in-progress",
+  "assignee": {
+    "sessionId": "feature-auth"
+  }
+}
+```
+
+**例 - 担当者のクリア:**
+```typescript
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "assignee": null
 }
 ```
 
@@ -244,6 +270,47 @@ Claude Codeのコンテキスト理解を使用してタスクをサブタスク
 
 ## クエリツール
 
+### `get_next_task`
+
+依存関係と優先度に基づいて次に作業すべきタスクを推奨します。
+
+**パラメータ:**
+- `status` (string | string[], オプション): ステータスで候補をフィルタ（デフォルト: pending、in-progress）
+- `priority` (string | string[], オプション): 優先度で候補をフィルタ
+- `currentSessionId` (string, オプション): 現在のセッション識別子。指定すると他のセッションに割り当てられたタスクを除外（ccmanagerマルチエージェント連携用）
+- `includeMetadata` (boolean, オプション): レスポンスにタイムスタンプを含める（デフォルト: false）
+
+**戻り値:**
+```typescript
+{
+  task: Task | null;
+  rationale: string;  // このタスクが推奨された理由の説明
+}
+```
+
+**例 - 基本的な使用:**
+```typescript
+get_next_task({})
+// 最も優先度が高いブロックされていないタスクを返す
+```
+
+**例 - マルチエージェント（ccmanager）:**
+```typescript
+get_next_task({
+  currentSessionId: "feature-auth"
+})
+// 他のセッションに割り当てられていない次のタスクを返す
+```
+
+**推奨ロジック:**
+1. pending/in-progressタスクにフィルタ
+2. 他のセッションに割り当てられたタスクを除外（`currentSessionId`指定時）
+3. 未完了の依存関係でブロックされているタスクを除外
+4. 優先度でソート（high → medium → low）
+5. 利用可能な最初のタスクを理由とともに返す
+
+---
+
 ### `query_tasks`
 
 フィルタとソートを使用した高度なタスククエリ。
@@ -307,15 +374,33 @@ interface Task {
   title: string;
   description?: string;
   status: TaskStatus;
-  priority: number;              // 0-100
+  priority: Priority;            // "high" | "medium" | "low"
   dependencies: string[];        // タスクID
   subtasks: Subtask[];
+  assignee?: TaskAssignee;       // マルチエージェント連携用
   metadata: {
     created: ISO8601;
     updated: ISO8601;
     completedAt?: ISO8601;
   };
 }
+```
+
+### TaskAssignee
+
+```typescript
+interface TaskAssignee {
+  sessionId: string;    // セッション識別子（例：ブランチ名、worktree名）
+  assignedAt: string;   // ISO8601タイムスタンプ
+}
+```
+
+[ccmanager](https://github.com/kbwo/ccmanager)とのマルチエージェント連携に使用。タスクにassigneeがある場合、他のセッションは`currentSessionId`を指定することで`get_next_task`の結果からそのタスクを除外できます。
+
+### Priority
+
+```typescript
+type Priority = "high" | "medium" | "low";
 ```
 
 ### Subtask

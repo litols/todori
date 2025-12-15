@@ -149,6 +149,144 @@ Tasks are stored in `.todori/tasks.yaml` at your project root.
 
 You can work on multiple projects. Each project maintains its own task list in its `.todori/` directory.
 
+## Multi-Agent Coordination (ccmanager)
+
+Todori supports multi-agent task coordination, designed to work seamlessly with [ccmanager](https://github.com/kbwo/ccmanager) for parallel development workflows.
+
+### Overview
+
+When working with multiple Claude Code sessions (e.g., different git worktrees), Todori allows each session to "claim" tasks, preventing other sessions from working on the same task.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    ccmanager                            │
+├──────────────┬──────────────┬──────────────────────────┤
+│ Worktree A   │ Worktree B   │ Worktree C              │
+│ (feature-1)  │ (feature-2)  │ (bugfix-1)              │
+├──────────────┼──────────────┼──────────────────────────┤
+│/todori-claim │/todori-claim │/todori-claim            │
+│  → Task T1   │  → Task T2   │  → Task T3              │
+│              │              │                          │
+│ ... work ... │ ... work ... │ ... work ...            │
+│              │              │                          │
+│/todori-done  │/todori-done  │/todori-release          │
+│  → T1 done   │  → T2 done   │  → T3 released          │
+└──────────────┴──────────────┴──────────────────────────┘
+```
+
+### Commands for Multi-Agent Workflow
+
+#### `/todori-claim` - Claim Next Task
+
+Claims the next available task for the current session:
+
+```
+/todori-claim                    # Auto-detect session ID
+/todori-claim feature-auth       # Specify session ID manually
+```
+
+The command will:
+1. Find the next unassigned task (respecting dependencies and priority)
+2. Set the task status to `in-progress`
+3. Assign the task to your session
+
+Session ID is detected in this order:
+1. Command argument (if provided)
+2. `CCMANAGER_WORKTREE_BRANCH` environment variable
+3. `CCMANAGER_SESSION_ID` environment variable
+4. Current git branch name
+5. Fallback to "default"
+
+#### `/todori-release` - Release a Task
+
+Releases a claimed task without completing it:
+
+```
+/todori-release              # Release current in-progress task
+/todori-release abc-123      # Release specific task by ID
+```
+
+This clears the assignee, making the task available for other sessions.
+
+#### `/todori-status` - Multi-Session Overview
+
+Shows task status across all sessions:
+
+```
+/todori-status
+```
+
+Output shows:
+- Tasks grouped by session/assignee
+- Unassigned tasks available for claiming
+- Recently completed tasks
+
+### Using with ccmanager
+
+1. **Install ccmanager**:
+   ```bash
+   npm install -g ccmanager
+   ```
+
+2. **Create worktrees for parallel work**:
+   ```bash
+   # ccmanager will manage git worktrees automatically
+   ccmanager
+   ```
+
+3. **In each session**, use Todori commands:
+   ```
+   /todori-claim          # Get next available task
+   # ... work on the task ...
+   /todori-done           # Mark complete when finished
+   ```
+
+4. **Status hooks** (optional): Configure ccmanager to run Todori commands on session state changes.
+
+### API Support
+
+The following MCP tools support multi-agent coordination:
+
+#### `get_next_task` with `currentSessionId`
+
+```typescript
+// Excludes tasks assigned to other sessions
+get_next_task({
+  currentSessionId: "feature-1"
+})
+```
+
+#### `update_task` with `assignee`
+
+```typescript
+// Assign task to a session
+update_task({
+  id: "task-uuid",
+  status: "in-progress",
+  assignee: { sessionId: "feature-1" }
+})
+
+// Clear assignee
+update_task({
+  id: "task-uuid",
+  assignee: null
+})
+```
+
+### Task Assignee
+
+Each task can have an optional `assignee` field:
+
+```yaml
+tasks:
+  - id: 550e8400-e29b-41d4-a716-446655440000
+    title: Implement user authentication
+    status: in-progress
+    assignee:
+      sessionId: feature-1
+      assignedAt: 2025-12-15T10:30:00Z
+```
+
 ## Advanced Features
 
 ### Subtasks
