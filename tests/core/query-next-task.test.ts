@@ -153,4 +153,52 @@ describe("QueryEngine - getNextTask", () => {
     expect(result.task?.id).not.toBe(taskD.id);
     expect([taskB.id, taskC.id]).toContain(result.task?.id || "");
   });
+
+  test("excludes tasks assigned to other sessions when currentSessionId provided", async () => {
+    const taskA = await taskManager.createTask({ title: "Task A" });
+    const taskB = await taskManager.createTask({ title: "Task B" });
+
+    // Assign Task A to session "feature-1"
+    await taskManager.updateTask(taskA.id, {
+      assignee: { sessionId: "feature-1", assignedAt: new Date().toISOString() },
+    });
+
+    // Query from session "feature-2" - should not see Task A
+    const result = await queryEngine.getNextTask({ currentSessionId: "feature-2" });
+
+    expect(result.task).not.toBeNull();
+    expect(result.task?.id).toBe(taskB.id);
+  });
+
+  test("includes own assigned tasks when currentSessionId matches", async () => {
+    const taskA = await taskManager.createTask({ title: "Task A" });
+    await taskManager.createTask({ title: "Task B" });
+
+    // Assign Task A to session "feature-1"
+    await taskManager.updateTask(taskA.id, {
+      assignee: { sessionId: "feature-1", assignedAt: new Date().toISOString() },
+    });
+
+    // Query from same session "feature-1" - should see Task A
+    const result = await queryEngine.getNextTask({ currentSessionId: "feature-1" });
+
+    expect(result.task).not.toBeNull();
+    // Task A should be available (assigned to self)
+    expect([taskA.id]).toContain(result.task?.id);
+  });
+
+  test("returns all tasks when currentSessionId not provided", async () => {
+    const taskA = await taskManager.createTask({ title: "Task A" });
+    const _taskB = await taskManager.createTask({ title: "Task B" });
+
+    // Assign Task A to session "feature-1"
+    await taskManager.updateTask(taskA.id, {
+      assignee: { sessionId: "feature-1", assignedAt: new Date().toISOString() },
+    });
+
+    // Query without currentSessionId - should see all tasks
+    const result = await queryEngine.getNextTask();
+
+    expect(result.task).not.toBeNull();
+  });
 });

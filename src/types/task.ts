@@ -34,6 +34,15 @@ export interface TaskMetadata {
 }
 
 /**
+ * Task assignee information for multi-session coordination
+ * Used with ccmanager to track which session is working on a task
+ */
+export interface TaskAssignee {
+  sessionId: string; // Session identifier (e.g., branch name, worktree name)
+  assignedAt: string; // ISO8601 timestamp
+}
+
+/**
  * Subtask representation with hierarchical ID
  */
 export interface Subtask {
@@ -55,6 +64,7 @@ export interface Task {
   dependencies: string[];
   subtasks: Subtask[];
   metadata: TaskMetadata;
+  assignee?: TaskAssignee;
   customFields?: Record<string, unknown>;
 }
 

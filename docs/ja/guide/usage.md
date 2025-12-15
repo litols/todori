@@ -149,6 +149,144 @@ Todoriは以下を探すことでプロジェクトを自動検出：
 
 複数のプロジェクトで作業できます。各プロジェクトは独自の`.todori/`ディレクトリにタスクリストを保持します。
 
+## マルチエージェント連携（ccmanager）
+
+Todoriは並列開発ワークフロー向けに[ccmanager](https://github.com/kbwo/ccmanager)とシームレスに連携するマルチエージェントタスク調整機能をサポートしています。
+
+### 概要
+
+複数のClaude Codeセッション（例：異なるgit worktree）で作業する際、Todoriでは各セッションがタスクを「claim（取得）」でき、他のセッションが同じタスクで作業することを防ぎます。
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    ccmanager                            │
+├──────────────┬──────────────┬──────────────────────────┤
+│ Worktree A   │ Worktree B   │ Worktree C              │
+│ (feature-1)  │ (feature-2)  │ (bugfix-1)              │
+├──────────────┼──────────────┼──────────────────────────┤
+│/todori-claim │/todori-claim │/todori-claim            │
+│  → Task T1   │  → Task T2   │  → Task T3              │
+│              │              │                          │
+│ ... 作業 ... │ ... 作業 ... │ ... 作業 ...            │
+│              │              │                          │
+│/todori-done  │/todori-done  │/todori-release          │
+│  → T1 完了   │  → T2 完了   │  → T3 解放              │
+└──────────────┴──────────────┴──────────────────────────┘
+```
+
+### マルチエージェントワークフロー用コマンド
+
+#### `/todori-claim` - 次のタスクを取得
+
+現在のセッション用に次の利用可能なタスクを取得：
+
+```
+/todori-claim                    # セッションIDを自動検出
+/todori-claim feature-auth       # セッションIDを手動指定
+```
+
+このコマンドは：
+1. 次の未割り当てタスクを検索（依存関係と優先度を考慮）
+2. タスクステータスを`in-progress`に設定
+3. タスクを自分のセッションに割り当て
+
+セッションIDは以下の順序で検出：
+1. コマンド引数（指定された場合）
+2. `CCMANAGER_WORKTREE_BRANCH`環境変数
+3. `CCMANAGER_SESSION_ID`環境変数
+4. 現在のgitブランチ名
+5. フォールバックとして"default"
+
+#### `/todori-release` - タスクを解放
+
+完了せずに取得したタスクを解放：
+
+```
+/todori-release              # 現在の進行中タスクを解放
+/todori-release abc-123      # IDで特定のタスクを解放
+```
+
+これにより担当者がクリアされ、他のセッションがタスクを利用可能になります。
+
+#### `/todori-status` - マルチセッション概要
+
+全セッションのタスク状況を表示：
+
+```
+/todori-status
+```
+
+出力内容：
+- セッション/担当者別にグループ化されたタスク
+- 取得可能な未割り当てタスク
+- 最近完了したタスク
+
+### ccmanagerとの使用方法
+
+1. **ccmanagerをインストール**：
+   ```bash
+   npm install -g ccmanager
+   ```
+
+2. **並列作業用のworktreeを作成**：
+   ```bash
+   # ccmanagerがgit worktreeを自動管理
+   ccmanager
+   ```
+
+3. **各セッションで**、Todoriコマンドを使用：
+   ```
+   /todori-claim          # 次の利用可能なタスクを取得
+   # ... タスクに取り組む ...
+   /todori-done           # 完了したら完了マーク
+   ```
+
+4. **ステータスフック**（オプション）：セッション状態変化時にTodoriコマンドを実行するようccmanagerを設定。
+
+### API サポート
+
+以下のMCPツールがマルチエージェント調整をサポート：
+
+#### `get_next_task`と`currentSessionId`
+
+```typescript
+// 他のセッションに割り当てられたタスクを除外
+get_next_task({
+  currentSessionId: "feature-1"
+})
+```
+
+#### `update_task`と`assignee`
+
+```typescript
+// タスクをセッションに割り当て
+update_task({
+  id: "task-uuid",
+  status: "in-progress",
+  assignee: { sessionId: "feature-1" }
+})
+
+// 担当者をクリア
+update_task({
+  id: "task-uuid",
+  assignee: null
+})
+```
+
+### タスクの担当者
+
+各タスクはオプションの`assignee`フィールドを持つことができます：
+
+```yaml
+tasks:
+  - id: 550e8400-e29b-41d4-a716-446655440000
+    title: ユーザー認証を実装
+    status: in-progress
+    assignee:
+      sessionId: feature-1
+      assignedAt: 2025-12-15T10:30:00Z
+```
+
 ## 高度な機能
 
 ### サブタスク

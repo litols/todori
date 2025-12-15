@@ -40,6 +40,14 @@ const SubtaskSchema = z.object({
 });
 
 /**
+ * Zod schema for TaskAssignee (multi-session coordination)
+ */
+const TaskAssigneeSchema = z.object({
+  sessionId: z.string().min(1),
+  assignedAt: z.string().datetime(),
+});
+
+/**
  * Zod schema for Task
  */
 const TaskSchema = z.object({
@@ -51,6 +59,7 @@ const TaskSchema = z.object({
   dependencies: z.array(z.string().uuid()),
   subtasks: z.array(SubtaskSchema),
   metadata: TaskMetadataSchema,
+  assignee: TaskAssigneeSchema.optional(),
   customFields: z.record(z.string(), z.unknown()).optional(),
 });
 

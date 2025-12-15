@@ -59,6 +59,14 @@ export const CreateTaskSchema = z.object({
 });
 
 /**
+ * Assignee schema for multi-session coordination
+ */
+export const AssigneeSchema = z.object({
+  sessionId: z.string().min(1),
+  assignedAt: z.string().optional(), // Auto-set if not provided
+});
+
+/**
  * update_task input schema
  */
 export const UpdateTaskSchema = z.object({
@@ -68,6 +76,7 @@ export const UpdateTaskSchema = z.object({
   status: TaskStatusSchema.optional(),
   priority: PrioritySchema.optional(),
   dependencies: z.array(z.string()).optional(),
+  assignee: z.union([AssigneeSchema, z.null()]).optional(), // null to clear
   includeMetadata: z.boolean().optional(),
 });
 
@@ -84,6 +93,7 @@ export const DeleteTaskSchema = z.object({
 export const GetNextTaskSchema = z.object({
   status: z.union([TaskStatusSchema, z.array(TaskStatusSchema)]).optional(),
   priority: z.union([PrioritySchema, z.array(PrioritySchema)]).optional(),
+  currentSessionId: z.string().min(1).optional(), // Exclude tasks assigned to other sessions
   includeMetadata: z.boolean().optional(),
 });
 
