@@ -13,6 +13,7 @@ import {
   type Priority,
   type Subtask,
   type Task,
+  type TaskAssignee,
   type TaskResponse,
   type TaskStatus,
   toTaskResponse,
@@ -247,7 +248,7 @@ export async function handleUpdateTask(params: unknown, context: ToolContext): P
     return validation;
   }
 
-  const { id, title, description, status, priority, dependencies, includeMetadata } =
+  const { id, title, description, status, priority, dependencies, assignee, includeMetadata } =
     validation.data;
 
   try {
@@ -287,12 +288,26 @@ export async function handleUpdateTask(params: unknown, context: ToolContext): P
       }
     }
 
+    // Process assignee - auto-set assignedAt if not provided
+    let processedAssignee: TaskAssignee | null | undefined = undefined;
+    if (assignee !== undefined) {
+      if (assignee === null) {
+        processedAssignee = null;
+      } else {
+        processedAssignee = {
+          sessionId: assignee.sessionId,
+          assignedAt: assignee.assignedAt || new Date().toISOString(),
+        };
+      }
+    }
+
     const updatedTask = await context.taskManager.updateTask(id, {
       title,
       description,
       status: status as TaskStatus | undefined,
       priority: priority as Priority | undefined,
       dependencies,
+      assignee: processedAssignee,
     });
 
     if (!updatedTask) {
@@ -352,12 +367,13 @@ export async function handleGetNextTask(
     return validation;
   }
 
-  const { status, priority, includeMetadata } = validation.data;
+  const { status, priority, currentSessionId, includeMetadata } = validation.data;
 
   try {
     const recommendation = await context.queryEngine.getNextTask({
       status: normalizeFilter(status) as TaskStatus[] | undefined,
       priority: normalizeFilter(priority) as Priority[] | undefined,
+      currentSessionId,
     });
 
     // If there's a recommended task, apply metadata exclusion

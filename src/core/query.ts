@@ -19,6 +19,8 @@ export interface QueryOptions {
   fields?: (keyof Task)[];
   offset?: number;
   limit?: number;
+  /** Current session ID - excludes tasks assigned to other sessions */
+  currentSessionId?: string;
 }
 
 /**
@@ -177,9 +179,18 @@ export class QueryEngine {
     const allTasks = await this.taskManager.getAllTasks();
 
     // Filter to workable tasks (pending or in-progress)
-    const workableTasks = allTasks.filter(
+    let workableTasks = allTasks.filter(
       (task) => task.status === "pending" || task.status === ("in-progress" as TaskStatus),
     );
+
+    // If currentSessionId is provided, exclude tasks assigned to OTHER sessions
+    if (options.currentSessionId) {
+      workableTasks = workableTasks.filter((task) => {
+        // Include if: no assignee, or assigned to current session
+        if (!task.assignee) return true;
+        return task.assignee.sessionId === options.currentSessionId;
+      });
+    }
 
     if (workableTasks.length === 0) {
       return {

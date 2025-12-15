@@ -109,7 +109,7 @@ export function getToolSchemas(): MCPToolSchema[] {
     {
       name: "update_task",
       description:
-        "Update task fields (status, priority, description, dependencies). Metadata excluded by default to save context. IMPORTANT: Always store title and description in English, regardless of user's input language.",
+        "Update task fields (status, priority, description, dependencies, assignee). Metadata excluded by default to save context. IMPORTANT: Always store title and description in English, regardless of user's input language.",
       inputSchema: {
         type: "object",
         required: ["id"],
@@ -126,6 +126,26 @@ export function getToolSchemas(): MCPToolSchema[] {
             type: "array",
             items: { type: "string" },
             description: "Replace dependencies list",
+          },
+          assignee: {
+            oneOf: [
+              {
+                type: "object",
+                required: ["sessionId"],
+                properties: {
+                  sessionId: {
+                    type: "string",
+                    description: "Session identifier (e.g., branch name, worktree name)",
+                  },
+                  assignedAt: {
+                    type: "string",
+                    description: "ISO8601 timestamp (auto-set if not provided)",
+                  },
+                },
+              },
+              { type: "null", description: "Set to null to clear assignee" },
+            ],
+            description: "Assign task to a session for multi-agent coordination (ccmanager)",
           },
           includeMetadata: {
             type: "boolean",
@@ -149,7 +169,7 @@ export function getToolSchemas(): MCPToolSchema[] {
     {
       name: "get_next_task",
       description:
-        "Recommend the next task to work on based on dependencies and priority. Metadata excluded by default to save context.",
+        "Recommend the next task to work on based on dependencies and priority. Excludes tasks assigned to other sessions when currentSessionId is provided. Metadata excluded by default to save context.",
       inputSchema: {
         type: "object",
         properties: {
@@ -175,6 +195,11 @@ export function getToolSchemas(): MCPToolSchema[] {
               { type: "array", items: { type: "string", enum: ["high", "medium", "low"] } },
             ],
             description: "Filter candidates by priority",
+          },
+          currentSessionId: {
+            type: "string",
+            description:
+              "Current session identifier. When provided, excludes tasks assigned to other sessions (for ccmanager multi-agent coordination)",
           },
           includeMetadata: {
             type: "boolean",

@@ -4,7 +4,7 @@
 
 import { v4 as uuidv4 } from "uuid";
 import type { TaskStore } from "../storage/task-store.js";
-import type { Priority, Subtask, Task } from "../types/task.js";
+import type { Priority, Subtask, Task, TaskAssignee } from "../types/task.js";
 import { TaskStatus } from "../types/task.js";
 
 /**
@@ -28,6 +28,7 @@ export interface UpdateTaskOptions {
   status?: TaskStatus;
   priority?: Priority;
   dependencies?: string[];
+  assignee?: TaskAssignee | null;  // null to clear assignee
   customFields?: Record<string, unknown>;
 }
 
@@ -101,6 +102,12 @@ export class TaskManager {
 
     const now = new Date().toISOString();
 
+    // Determine assignee value
+    let assignee = task.assignee;
+    if (updates.assignee !== undefined) {
+      assignee = updates.assignee === null ? undefined : updates.assignee;
+    }
+
     // Merge updates with existing task
     const updatedTask: Task = {
       id: task.id,
@@ -110,6 +117,7 @@ export class TaskManager {
       priority: updates.priority !== undefined ? updates.priority : task.priority,
       dependencies: updates.dependencies !== undefined ? updates.dependencies : task.dependencies,
       subtasks: task.subtasks,
+      assignee,
       customFields: updates.customFields !== undefined ? updates.customFields : task.customFields,
       metadata: {
         created: task.metadata.created,
