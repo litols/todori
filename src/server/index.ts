@@ -18,7 +18,11 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { QueryEngine } from "../core/query.js";
 import { TaskManager } from "../core/task-manager.js";
-import { detectProjectRoot, initializeProject } from "../integration/project-detect.js";
+import {
+  detectProjectRoot,
+  initializeProject,
+  resolveStorageRoot,
+} from "../integration/project-detect.js";
 import { TaskStore } from "../storage/task-store.js";
 import {
   getPromptSchemas,
@@ -55,8 +59,14 @@ async function main() {
     // Initialize project if needed (creates .todori directory)
     await initializeProject(projectRoot);
 
+    // Resolve storage root (handles git worktree)
+    const storageRoot = await resolveStorageRoot(projectRoot);
+    if (storageRoot !== projectRoot) {
+      console.error(`[Todori] Git worktree detected, using main repository: ${storageRoot}`);
+    }
+
     // Initialize storage and core components
-    const taskStore = new TaskStore(projectRoot);
+    const taskStore = new TaskStore(storageRoot);
     const taskManager = new TaskManager(taskStore);
     const queryEngine = new QueryEngine(taskManager);
 

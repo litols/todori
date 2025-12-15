@@ -6,6 +6,7 @@
 import { QueryEngine, TaskManager } from "../core/index.js";
 import { TaskStore } from "../storage/task-store.js";
 import type { Task } from "../types/task.js";
+import { resolveStorageRoot } from "./project-detect.js";
 
 /**
  * Session context containing task statistics and recommendations
@@ -24,8 +25,11 @@ export interface SessionContext {
  * @returns SessionContext with statistics and recommendations
  */
 export async function restoreSession(projectRoot: string): Promise<SessionContext> {
+  // Resolve storage root (handles git worktree)
+  const storageRoot = await resolveStorageRoot(projectRoot);
+
   // Initialize storage and core managers
-  const taskStore = new TaskStore(projectRoot);
+  const taskStore = new TaskStore(storageRoot);
   const taskManager = new TaskManager(taskStore);
   const queryEngine = new QueryEngine(taskManager);
 
