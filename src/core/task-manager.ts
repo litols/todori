@@ -28,7 +28,7 @@ export interface UpdateTaskOptions {
   status?: TaskStatus;
   priority?: Priority;
   dependencies?: string[];
-  assignee?: TaskAssignee | null;  // null to clear assignee
+  assignee?: TaskAssignee | null; // null to clear assignee
   customFields?: Record<string, unknown>;
 }
 

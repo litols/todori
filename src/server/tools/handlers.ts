@@ -289,7 +289,7 @@ export async function handleUpdateTask(params: unknown, context: ToolContext): P
     }
 
     // Process assignee - auto-set assignedAt if not provided
-    let processedAssignee: TaskAssignee | null | undefined = undefined;
+    let processedAssignee: TaskAssignee | null | undefined;
     if (assignee !== undefined) {
       if (assignee === null) {
         processedAssignee = null;
