@@ -2,21 +2,21 @@
 
 ## 前提条件
 
-- [Bun](https://bun.sh) 1.3.4以降
+- Node.js 18以降（npx用）
 - Claude Code CLIまたはMCP対応のClaude Desktop
 
 ## Claude MCPを使用したインストール
 
-Todoriをインストールする最も簡単な方法は、Claude MCPレジストリを使用することです：
+Todoriをインストールする最も簡単な方法は、Claude MCPコマンドを使用することです：
 
 ```bash
-claude mcp add todori
+claude mcp add todori -- npx -y @litols/todori
 ```
 
 このコマンドにより：
-1. 最新版のTodoriがダウンロードされます
-2. Claude設定にMCPサーバーとして構成されます
-3. すべてのClaude Codeセッションで使用可能になります
+1. Claude設定にMCPサーバーとして構成されます
+2. すべてのClaude Codeセッションで使用可能になります
+3. 必要時に自動的に最新版がダウンロードされます
 
 ## 手動インストール
 
@@ -53,8 +53,8 @@ Claude設定ファイルにTodoriを追加：
 {
   "mcpServers": {
     "todori": {
-      "command": "bun",
-      "args": ["/path/to/todori/dist/server/index.js"]
+      "command": "npx",
+      "args": ["-y", "@litols/todori"]
     }
   }
 }
@@ -68,14 +68,25 @@ Claude設定ファイルにTodoriを追加：
 {
   "mcpServers": {
     "todori": {
-      "command": "bun",
-      "args": ["/path/to/todori/dist/server/index.js"]
+      "command": "npx",
+      "args": ["-y", "@litols/todori"]
     }
   }
 }
 ```
 
-`/path/to/todori`をリポジトリをクローンした実際のパスに置き換えてください。
+開発版を使用する場合は、ローカルビルドを使用できます：
+
+```json
+{
+  "mcpServers": {
+    "todori": {
+      "command": "node",
+      "args": ["/path/to/todori/dist/server/index.js"]
+    }
+  }
+}
+```
 
 ## 動作確認
 
@@ -109,8 +120,8 @@ MCP設定でプロジェクトルートを手動で指定することもでき�
 {
   "mcpServers": {
     "todori": {
-      "command": "bun",
-      "args": ["/path/to/todori/dist/server/index.js"],
+      "command": "npx",
+      "args": ["-y", "@litols/todori"],
       "env": {
         "TODORI_PROJECT_ROOT": "/path/to/your/project"
       }
@@ -123,8 +134,8 @@ MCP設定でプロジェクトルートを手動で指定することもでき�
 
 ### MCPサーバーが接続しない
 
-1. Bunがインストールされているか確認: `bun --version`
-2. 設定内のパスが正しいか確認
+1. Node.jsがインストールされているか確認: `node --version`
+2. npxが利用可能か確認: `npx --version`
 3. Claudeのログでエラーメッセージを確認
 
 ### タスクが永続化されない

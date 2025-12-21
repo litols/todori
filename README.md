@@ -18,19 +18,42 @@ Todori is a Model Context Protocol (MCP) server designed specifically for Claude
 
 ## 🚀 Quick Start
 
-### Option 1: Claude Code Plugin (Recommended)
+### Installation
 
-Install Todori as a Claude Code plugin:
+Add Todori to your Claude Code MCP configuration:
 
 ```bash
-# Add the marketplace
-/plugin marketplace add litols/todori
-
-# Install the plugin
-/plugin install todori@todori-marketplace
+claude mcp add todori -- npx -y @litols/todori
 ```
 
-After installation, restart Claude Code and use the slash commands:
+Or manually add to your Claude configuration file:
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+**Linux/Windows**: `~/.config/claude/config.json`
+
+```json
+{
+  "mcpServers": {
+    "todori": {
+      "command": "npx",
+      "args": ["-y", "@litols/todori"]
+    }
+  }
+}
+```
+
+After configuration, restart Claude Code and start using it:
+
+```
+Create a task: Implement user authentication
+Show me all my tasks
+Expand task: Implement user authentication
+```
+
+### Slash Commands
+
+Use the built-in slash commands for quick access:
 
 ```
 /todori-tasks       # Show all tasks
@@ -38,22 +61,6 @@ After installation, restart Claude Code and use the slash commands:
 /todori-add         # Add a new task
 /todori-done        # Mark task as completed
 /todori-init        # Initialize Todori in project
-```
-
-### Option 2: MCP Registry
-
-Install Todori via the Claude MCP registry:
-
-```bash
-claude mcp add todori
-```
-
-Then start using it in your Claude Code sessions:
-
-```
-Create a task: Implement user authentication
-Show me all my tasks
-Expand task: Implement user authentication
 ```
 
 ## 📚 Documentation
@@ -122,7 +129,7 @@ bun run lint
 - `bun run docs:build` - Build documentation
 - `bun run docs:preview` - Preview built documentation
 
-### Manual MCP Configuration
+### Development MCP Configuration
 
 To use the development version, add to your Claude configuration:
 
@@ -134,7 +141,7 @@ To use the development version, add to your Claude configuration:
 {
   "mcpServers": {
     "todori": {
-      "command": "bun",
+      "command": "node",
       "args": ["/path/to/todori/dist/server/index.js"]
     }
   }

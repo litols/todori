@@ -44,7 +44,7 @@ features:
 MCPサーバーとしてTodoriをインストール：
 
 ```bash
-claude mcp add todori
+claude mcp add todori -- npx -y @litols/todori
 ```
 
 その後、Claude Codeセッションで使用開始：

@@ -44,7 +44,7 @@ Unlike traditional task management tools, Todori is optimized for AI-driven work
 Install Todori as an MCP server:
 
 ```bash
-claude mcp add todori
+claude mcp add todori -- npx -y @litols/todori
 ```
 
 Then start using it in your Claude Code sessions to:

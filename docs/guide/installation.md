@@ -2,21 +2,21 @@
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) 1.3.4 or later
+- Node.js 18 or later (for npx)
 - Claude Code CLI or Claude Desktop with MCP support
 
 ## Installation via Claude MCP
 
-The easiest way to install Todori is through the Claude MCP registry:
+The easiest way to install Todori is through the Claude MCP command:
 
 ```bash
-claude mcp add todori
+claude mcp add todori -- npx -y @litols/todori
 ```
 
 This command will:
-1. Download the latest version of Todori
-2. Configure it as an MCP server in your Claude configuration
-3. Make it available in all your Claude Code sessions
+1. Configure Todori as an MCP server in your Claude configuration
+2. Make it available in all your Claude Code sessions
+3. Automatically download the latest version when needed
 
 ## Manual Installation
 
@@ -53,8 +53,8 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "todori": {
-      "command": "bun",
-      "args": ["/path/to/todori/dist/server/index.js"]
+      "command": "npx",
+      "args": ["-y", "@litols/todori"]
     }
   }
 }
@@ -68,14 +68,25 @@ Edit `~/.config/claude/config.json`:
 {
   "mcpServers": {
     "todori": {
-      "command": "bun",
-      "args": ["/path/to/todori/dist/server/index.js"]
+      "command": "npx",
+      "args": ["-y", "@litols/todori"]
     }
   }
 }
 ```
 
-Replace `/path/to/todori` with the actual path where you cloned the repository.
+For development, you can also use a local build:
+
+```json
+{
+  "mcpServers": {
+    "todori": {
+      "command": "node",
+      "args": ["/path/to/todori/dist/server/index.js"]
+    }
+  }
+}
+```
 
 ## Verification
 
@@ -109,8 +120,8 @@ You can also manually specify the project root in your MCP configuration:
 {
   "mcpServers": {
     "todori": {
-      "command": "bun",
-      "args": ["/path/to/todori/dist/server/index.js"],
+      "command": "npx",
+      "args": ["-y", "@litols/todori"],
       "env": {
         "TODORI_PROJECT_ROOT": "/path/to/your/project"
       }
@@ -123,8 +134,8 @@ You can also manually specify the project root in your MCP configuration:
 
 ### MCP Server Not Connecting
 
-1. Check that Bun is installed: `bun --version`
-2. Verify the path in your configuration is correct
+1. Check that Node.js is installed: `node --version`
+2. Verify npx is available: `npx --version`
 3. Check Claude's logs for error messages
 
 ### Tasks Not Persisting
