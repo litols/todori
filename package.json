@@ -4,7 +4,7 @@
   "description": "Claude Code-native task management MCP server with minimal context overhead",
   "module": "index.ts",
   "type": "module",
-  "private": true,
+  "private": false,
   "bin": {
     "todori": "./dist/server/index.js"
   },
