@@ -18,6 +18,30 @@ claude mcp add todori -- npx -y @litols/todori
 2. すべてのClaude Codeセッションで使用可能になります
 3. 必要時に自動的に最新版がダウンロードされます
 
+## Claude Code Pluginを使用したインストール
+
+スラッシュコマンドも含めてTodoriをClaude Code Pluginとしてインストールすることもできます：
+
+```bash
+# GitHubからプラグインをインストール
+claude plugin add https://github.com/litols/todori
+```
+
+インストール後、Claude Codeを再起動してスラッシュコマンドを使用：
+
+```
+/todori-tasks       # すべてのタスクを表示
+/todori-next        # 推奨される次のタスクを取得（表示のみ）
+/todori-claim       # 次のタスクをこのセッションに割り当て（割当 + 開始）
+/todori-release     # 割り当てられたタスクを解放
+/todori-add         # 新しいタスクを追加
+/todori-done        # タスクを完了としてマーク
+/todori-status      # マルチセッションのタスク概要を表示
+/todori-init        # プロジェクトでTodoriを初期化
+```
+
+**nextとclaimの違い**: `/todori-next`は推奨タスクを表示するだけですが、`/todori-claim`はさらにそのタスクをセッションに割り当て、ステータスを「in-progress」に設定します。ccmanagerを使ったマルチエージェントワークフローでは`claim`を使用してください。
+
 ## 手動インストール
 
 手動でインストールする場合、または開発版を使用したい場合：

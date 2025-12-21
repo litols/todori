@@ -57,11 +57,16 @@ Use the built-in slash commands for quick access:
 
 ```
 /todori-tasks       # Show all tasks
-/todori-next        # Get recommended next task
+/todori-next        # Get recommended next task (view only)
+/todori-claim       # Claim next task for this session (assigns + starts)
+/todori-release     # Release a claimed task
 /todori-add         # Add a new task
 /todori-done        # Mark task as completed
+/todori-status      # Show multi-session task overview
 /todori-init        # Initialize Todori in project
 ```
+
+**next vs claim**: `/todori-next` only shows the recommended task, while `/todori-claim` also assigns it to your session and sets status to "in-progress". Use `claim` for multi-agent workflows.
 
 ## 📚 Documentation
 

@@ -13,8 +13,8 @@
   "commands": "./commands/",
   "mcpServers": {
     "todori": {
-      "command": "bun",
-      "args": ["run", "${CLAUDE_PLUGIN_ROOT}/dist/server/index.js"],
+      "command": "npx",
+      "args": ["-y", "@litols/todori"],
       "env": {
         "TODORI_PROJECT_ROOT": "${cwd}"
       }
