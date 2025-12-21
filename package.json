@@ -1,5 +1,5 @@
 {
-  "name": "todori",
+  "name": "@litols/todori",
   "version": "0.0.2",
   "description": "Claude Code-native task management MCP server with minimal context overhead",
   "module": "index.ts",
